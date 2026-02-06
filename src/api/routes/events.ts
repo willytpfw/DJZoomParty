@@ -189,10 +189,9 @@ router.get('/user/:userName', async (req: Request, res: Response) => {
     try {
         const { userName } = req.params;
         // Fix Type  'string | SQLWrapper'
-        const nameToQuery = Array.isArray(userName) ? userName[0] : userName;
 
         const userData = await db.query.user.findFirst({
-            where: eq(user.userName, nameToQuery as string),
+            where: eq(user.userName, userName as unknown as string),
         });
 
         if (!userData) {
