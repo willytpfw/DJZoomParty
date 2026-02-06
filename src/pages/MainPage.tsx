@@ -26,7 +26,7 @@ export default function MainPage() {
     const [company, setCompany] = useState<CompanyData | null>(null);
     const [payload, setPayload] = useState<TokenPayload | null>(null);
     const [showPinVerification, setShowPinVerification] = useState(false);
-    const [] = useState<string>('');
+
 
     useEffect(() => {
         validateToken();
@@ -58,7 +58,7 @@ export default function MainPage() {
 
             setCompany(data.company);
             setPayload(data.payload);
-            //setRedirectTo(data.redirectTo);
+
 
             // Handle redirects
             if (data.valid) {
