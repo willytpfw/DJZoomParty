@@ -430,6 +430,7 @@ export default function EventListPage() {
                 <QRCodeModal
                     url={qrEvent.url}
                     eventToken={qrEvent.event.eventToken}
+                    eventName={qrEvent.event.name}
                     onClose={() => setQrEvent(null)}
                 />
             )}

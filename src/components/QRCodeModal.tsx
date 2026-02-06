@@ -4,11 +4,12 @@ import { useState } from 'react';
 
 interface QRCodeModalProps {
     url: string;
+    eventName: string;
     eventToken: string;
     onClose: () => void;
 }
 
-export default function QRCodeModal({ url, eventToken, onClose }: QRCodeModalProps) {
+export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRCodeModalProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopyUrl = async () => {
@@ -75,8 +76,8 @@ export default function QRCodeModal({ url, eventToken, onClose }: QRCodeModalPro
 
                 {/* Event Token */}
                 <div className="text-center mb-6">
-                    <p className="text-sm text-gray-400 mb-1">Token del Evento</p>
-                    <p className="font-mono text-lg text-disco-purple">{eventToken}</p>
+                    <p className="text-sm text-gray-400 mb-1">Evento</p>
+                    <p className="font-mono text-lg text-disco-purple">{eventName}</p>
                 </div>
 
                 {/* URL */}
