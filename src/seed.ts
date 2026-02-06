@@ -46,14 +46,15 @@ async function seed() {
         const eventDate = new Date();
         eventDate.setHours(eventDate.getHours() + 4); // Event in 4 hours
 
-        const [testEvent] = await db.insert(event).values({
+        const [testEvent] = await db.insert(event).values([{
             idCompany: testCompany.idCompany,
+            name: 'Grand Opening Party',
             eventDate: eventDate,
             eventToken: 'EVT001TEST1234',
             active: true,
             positionLatitud: 19.4326,
             positionLongitud: -99.1332,
-        }).returning();
+        }]).returning();
         console.log(`✓ Event created: ${testEvent.eventToken}`);
 
         // Add sample music

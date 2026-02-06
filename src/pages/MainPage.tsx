@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, Music, Calendar, AlertCircle, Send } from 'lucide-react';
+import { Loader2, Music, Calendar, AlertCircle } from 'lucide-react';
 import PinVerification from '../components/PinVerification';
 
 interface CompanyData {

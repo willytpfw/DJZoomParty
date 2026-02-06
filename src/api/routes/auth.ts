@@ -222,8 +222,6 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
         }
 
         // 2. Check if it is expired (> 24h)
-        const recordDate = toUTC6(loginRecord.date!); // Ensure we are comparing in correct timezone
-        const isExpired = !isWithinHours(recordDate, 24); // Or manually check date > twentyFourHoursAgo
 
         // Actually, easier to just check against the timestamp directly if db returns Date object
         // loginRecord.date is a Date object (UTC usually from pg driver, but we handle it)

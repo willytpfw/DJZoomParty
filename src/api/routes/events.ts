@@ -11,7 +11,7 @@ const router = Router();
 // Get events by company ID
 router.get('/company/:companyId', async (req: Request, res: Response) => {
     try {
-        const companyId = parseInt(req.params.companyId);
+        const companyId = parseInt(req.params.companyId as string);
 
         if (isNaN(companyId)) {
             return res.status(400).json({ success: false, error: 'Invalid company ID' });
@@ -32,7 +32,7 @@ router.get('/company/:companyId', async (req: Request, res: Response) => {
 // Get single event by ID
 router.get('/:eventId', async (req: Request, res: Response) => {
     try {
-        const eventId = parseInt(req.params.eventId);
+        const eventId = parseInt(req.params.eventId as string);
 
         if (isNaN(eventId)) {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
@@ -90,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update event
 router.put('/:eventId', async (req: Request, res: Response) => {
     try {
-        const eventId = parseInt(req.params.eventId);
+        const eventId = parseInt(req.params.eventId as string);
         const { name, eventDate, active, positionLongitud, positionLatitud } = req.body;
 
         if (isNaN(eventId)) {
@@ -122,7 +122,7 @@ router.put('/:eventId', async (req: Request, res: Response) => {
 // Delete event (soft delete by setting active to false)
 router.delete('/:eventId', async (req: Request, res: Response) => {
     try {
-        const eventId = parseInt(req.params.eventId);
+        const eventId = parseInt(req.params.eventId as string);
 
         if (isNaN(eventId)) {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
@@ -147,7 +147,7 @@ router.delete('/:eventId', async (req: Request, res: Response) => {
 // Generate QR code URL for event
 router.get('/:eventId/qr-data', async (req: Request, res: Response) => {
     try {
-        const eventId = parseInt(req.params.eventId);
+        const eventId = parseInt(req.params.eventId as string);
 
         if (isNaN(eventId)) {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
@@ -190,7 +190,7 @@ router.get('/user/:userName', async (req: Request, res: Response) => {
         const { userName } = req.params;
 
         const userData = await db.query.user.findFirst({
-            where: eq(user.userName, userName),
+            where: eq(user.userName, userName as string),
         });
 
         if (!userData) {
