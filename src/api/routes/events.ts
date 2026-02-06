@@ -166,10 +166,13 @@ router.get('/:eventId/qr-data', async (req: Request, res: Response) => {
         const token = await createToken({
             KeyCompany: eventData.company.keyCompany,
             EventToken: eventData.eventToken,
-        });
+        })
 
         // Build URL
-        const baseUrl = eventData.company.url || 'http://localhost:5173';
+        let baseUrl = eventData.company.url || process.env.URLLOCAL;
+        if (process.env.PRODUCTION === 'false') {
+            baseUrl = process.env.URLLOCAL;
+        }
         const eventUrl = `${baseUrl}?token=${encodeURIComponent(token)}`;
 
         res.json({
