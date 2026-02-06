@@ -8,12 +8,22 @@ import musicRoutes from './routes/music';
 import youtubeRoutes from './routes/youtube';
 import { errorMiddleware } from '../utils/errorHandler';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serving static files from the 'dist' directory
+const distPath = path.join(__dirname, '../../dist');
+app.use(express.static(distPath));
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -35,9 +45,9 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Error handling middleware
 app.use(errorMiddleware);
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-    res.status(404).json({ error: 'Not found' });
+// Catch-all route to serve index.html for SPA (must be after other routes)
+app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(PORT, () => {

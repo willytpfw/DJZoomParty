@@ -1,19 +1,33 @@
-# Build stage
-FROM node:20-alpine AS build
-
+# Stage 1: Build Frontend
+FROM node:20-alpine AS build-frontend
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm install
-
 COPY . .
 RUN npm run build
 
-# Production stage
-FROM nginx:stable-alpine
+# Stage 2: Build Backend
+FROM node:20-alpine AS build-backend
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+# Note: We don't run a separate build for the server because we use tsx 
+# but if needed, we could compile it here.
 
-COPY --from=build /app/dist /usr/share/nginx/html
+# Stage 3: Production
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build-backend /app/package*.json ./
+COPY --from=build-backend /app/node_modules ./node_modules
+COPY --from=build-backend /app/src ./src
+COPY --from=build-frontend /app/dist ./dist
 
-EXPOSE 80
+# Copy other necessary files
+COPY tsconfig*.json ./
+COPY drizzle.config.ts ./
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3001
+
+# Run the server using tsx (as defined in package.json)
+CMD ["npm", "run", "dev:server"]
