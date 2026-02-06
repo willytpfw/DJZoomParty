@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, Music, Calendar, AlertCircle } from 'lucide-react';
+import { Music, Calendar, AlertCircle } from 'lucide-react';
 import PinVerification from '../components/PinVerification';
 
 interface CompanyData {
@@ -26,7 +26,7 @@ export default function MainPage() {
     const [company, setCompany] = useState<CompanyData | null>(null);
     const [payload, setPayload] = useState<TokenPayload | null>(null);
     const [showPinVerification, setShowPinVerification] = useState(false);
-    const [redirectTo, setRedirectTo] = useState<string>('');
+    const [] = useState<string>('');
 
     useEffect(() => {
         validateToken();
@@ -58,7 +58,7 @@ export default function MainPage() {
 
             setCompany(data.company);
             setPayload(data.payload);
-            setRedirectTo(data.redirectTo);
+            //setRedirectTo(data.redirectTo);
 
             // Handle redirects
             if (data.valid) {

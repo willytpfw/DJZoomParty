@@ -26,7 +26,7 @@ const distPath = path.join(__dirname, '../../dist');
 app.use(express.static(distPath));
 
 // Request logging
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
 });
@@ -38,7 +38,7 @@ app.use('/api/music', musicRoutes);
 app.use('/api/youtube', youtubeRoutes);
 
 // Health check
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -46,7 +46,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 app.use(errorMiddleware);
 
 // Catch-all route to serve index.html for SPA (must be after other routes)
-app.get('*', (req: Request, res: Response) => {
+app.get('*', (_req: Request, res: Response) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 

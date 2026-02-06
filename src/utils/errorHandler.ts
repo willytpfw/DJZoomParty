@@ -53,7 +53,7 @@ export function errorMiddleware(
     err: Error,
     req: any,
     res: any,
-    next: any
+    _next: any
 ): void {
     console.error('Server error:', err);
 

@@ -3,7 +3,6 @@ import { db } from './db/db';
 import { user, company, userCompany, userLogin } from './db/schema';
 import { eq } from 'drizzle-orm';
 import * as jose from 'jose';
-import { addHours } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import './api/server';
 

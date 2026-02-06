@@ -3,7 +3,7 @@ import { eq, and, gt, desc } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { user, userLogin, company, userCompany, event } from '../../db/schema';
 import { verifyToken, createToken } from '../../utils/jws';
-import { isWithinHours, getCurrentDateUTC6, toUTC6 } from '../../utils/timezone';
+import { isWithinHours, getCurrentDateUTC6 } from '../../utils/timezone';
 import { handleError } from '../../utils/errorHandler';
 import { addHours } from 'date-fns';
 

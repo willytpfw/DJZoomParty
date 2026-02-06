@@ -287,7 +287,7 @@ export default function EventListPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredEvents.map((event, index) => (
+                                {filteredEvents.map((event, _index) => (
                                     <tr
                                         key={event.idEvent}
                                         className="border-b border-white/5 hover:bg-white/5 transition cursor-pointer"

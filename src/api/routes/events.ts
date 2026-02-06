@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { eq, desc, asc, inArray } from 'drizzle-orm';
+import { eq, asc, inArray } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { event, company, userCompany, user } from '../../db/schema';
+import { event, userCompany, user } from '../../db/schema';
 import { createToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
 import { randomBytes } from 'crypto';
