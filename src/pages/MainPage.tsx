@@ -62,6 +62,12 @@ export default function MainPage() {
 
             // Handle redirects
             if (data.valid) {
+                // Save the token to localStorage if it's a valid moderator token
+                const token = searchParams.get('token');
+                if (token && data.payload?.UserName) {
+                    localStorage.setItem('authToken', token);
+                }
+
                 if (data.redirectTo === 'music' && data.payload.EventToken) {
                     navigate(`/music/${data.payload.EventToken}`);
                 } else if (data.redirectTo === 'events') {
