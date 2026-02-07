@@ -4,6 +4,7 @@ import { db } from '../../db/db';
 import { eventMusic, event } from '../../db/schema';
 import { handleError } from '../../utils/errorHandler';
 import { verifyToken } from '../../utils/jws';
+import { isExpired } from '../../utils/timezone';
 
 const router = Router();
 
@@ -16,13 +17,34 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
         }
 
-        let showUrl = false;
+        let isAdmin = false;
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.split(' ')[1];
             const payload = await verifyToken(token);
-            if (payload && payload.UserName) {
-                showUrl = true;
+            console.log('DEBUG Music Access [/event/:eventId] - Payload:', JSON.stringify(payload));
+            if (payload &&
+                typeof payload.UserName === 'string' && payload.UserName.trim() !== '' &&
+                typeof payload.PIN === 'string' && payload.PIN.trim() !== '') {
+                isAdmin = true;
+            }
+        }
+        console.log('DEBUG Music Access [/event/:eventId] - Evaluated isAdmin:', isAdmin);
+
+        const eventData = await db.query.event.findFirst({
+            where: eq(event.idEvent, eventId),
+        });
+
+        if (!eventData) {
+            return res.status(404).json({ success: false, error: 'Event not found' });
+        }
+
+        // Tiered Access Control:
+        // Guests are blocked if event is NOT active or NOT in the 12h window.
+        // Admins with UserName and PIN (isAdmin = true) are allowed always.
+        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12)) {
+            if (!isAdmin) {
+                return res.status(403).json({ success: false, error: 'El evento no está activo' });
             }
         }
 
@@ -33,10 +55,10 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
 
         const musicResult = music.map(m => ({
             ...m,
-            url: showUrl ? m.url : '', // Hide URL if not authenticated
+            url: isAdmin ? m.url : '', // Only show URL to Admins
         }));
 
-        res.json({ success: true, music: musicResult });
+        res.json({ success: true, music: musicResult, isAdmin });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });
@@ -57,14 +79,37 @@ router.get('/event-token/:eventToken', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
-        let showUrl = false;
+        console.log('DEBUG Music Access - Event Status:', {
+            id: eventData.idEvent,
+            active: eventData.active,
+            date: eventData.eventDate,
+            now: new Date()
+        });
+
+        let isAdmin = false;
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.split(' ')[1];
             const payload = await verifyToken(token);
-            if (payload && payload.UserName) {
-                showUrl = true;
+            console.log('DEBUG Music Access [/event-token/:eventToken] - Payload:', JSON.stringify(payload));
+            if (payload &&
+                typeof payload.UserName === 'string' && payload.UserName.trim() !== '' &&
+                typeof payload.PIN === 'string' && payload.PIN.trim() !== '') {
+                isAdmin = true;
             }
+        }
+        console.log('DEBUG Music Access [/event-token/:eventToken] - Evaluated isAdmin:', isAdmin);
+
+        // Tiered Access Control:
+        // Guests are blocked if event is NOT active or NOT in the 12h window.
+        // Admins with UserName and PIN (isAdmin = true) are allowed always.
+        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12)) {
+            console.log('DEBUG Music Access - Inactive/Expired check triggered');
+            if (!isAdmin) {
+                console.log('DEBUG Music Access - Blocking guest');
+                return res.status(403).json({ success: false, error: 'El evento no está activo' });
+            }
+            console.log('DEBUG Music Access - Allowing Admin bypass');
         }
 
         const music = await db.query.eventMusic.findMany({
@@ -74,10 +119,10 @@ router.get('/event-token/:eventToken', async (req: Request, res: Response) => {
 
         const musicResult = music.map(m => ({
             ...m,
-            url: showUrl ? m.url : '', // Hide URL if not authenticated
+            url: isAdmin ? m.url : '', // Only show URL to Admins
         }));
 
-        res.json({ success: true, music: musicResult, event: eventData });
+        res.json({ success: true, music: musicResult, event: eventData, isAdmin });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });
@@ -98,7 +143,6 @@ router.post('/', async (req: Request, res: Response) => {
 
         const eventId = parseInt(idEvent);
 
-        // Get the max number for this event to auto-increment
         const existingMusic = await db.query.eventMusic.findMany({
             where: eq(eventMusic.idEvent, eventId),
         });
@@ -199,8 +243,10 @@ router.delete('/:musicId', async (req: Request, res: Response) => {
         const token = authHeader.split(' ')[1];
         const payload = await verifyToken(token);
 
-        if (!payload || !payload.UserName) {
-            return res.status(403).json({ success: false, error: 'Forbidden: Valid User required' });
+        if (!payload ||
+            typeof payload.UserName !== 'string' || payload.UserName.trim() === '' ||
+            typeof payload.PIN !== 'string' || payload.PIN.trim() === '') {
+            return res.status(403).json({ success: false, error: 'Forbidden: Valid Admin credentials required' });
         }
 
         const [deletedMusic] = await db.delete(eventMusic)
@@ -227,7 +273,6 @@ router.put('/reorder', async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, error: 'musicIds array is required' });
         }
 
-        // Update each music item with new number
         for (let i = 0; i < musicIds.length; i++) {
             await db.update(eventMusic)
                 .set({ number: i + 1 })

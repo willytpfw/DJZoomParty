@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft,
     Music,
@@ -48,6 +48,7 @@ interface YouTubeVideo {
 
 export default function MusicListPage() {
     const { eventToken } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     const [music, setMusic] = useState<EventMusic[]>([]);
@@ -72,7 +73,7 @@ export default function MusicListPage() {
         }
         return new Set();
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Save liked songs to localStorage whenever they change
     useEffect(() => {
@@ -123,21 +124,29 @@ export default function MusicListPage() {
 
     const fetchMusicByToken = async () => {
         try {
-            const token = getToken();
-            console.log('🔑 Token from localStorage:', token ? 'EXISTS' : 'NOT FOUND');
+            // Check for token in URL first (e.g. from a fresh QR scan)
+            const urlToken = searchParams.get('token');
+            if (urlToken) {
+                localStorage.setItem('authToken', urlToken);
+                console.log('✅ Found token in URL, updating localStorage');
+            }
+
+            const token = urlToken || getToken();
+            console.log('🔑 Token for request:', token ? 'EXISTS' : 'NOT FOUND');
 
             const headers: HeadersInit = {};
 
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
-                setIsAuthenticated(true);
-                console.log('✅ Setting isAuthenticated = true');
+                console.log('✅ Setting Authorization header');
             } else {
-                console.log('❌ No token found, staying unauthenticated');
+                console.log('❌ No token found');
             }
 
-            const response = await fetch(`/api/music/event-token/${eventToken}`, { headers });
+            const response = await fetch(`/api/music/event-token/${eventToken}?t=${Date.now()}`, { headers });
             const data = await response.json();
+
+            console.log('DEBUG Frontend - Received isAdmin from server:', data.isAdmin);
 
             if (!data.success) {
                 setError(data.error);
@@ -151,6 +160,7 @@ export default function MusicListPage() {
 
             setMusic(data.music);
             setEvent(data.event);
+            setIsAdmin(data.isAdmin || false);
         } catch (err) {
             setError('Error al cargar la música');
         } finally {
@@ -321,7 +331,7 @@ export default function MusicListPage() {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
-                    {isAuthenticated && (
+                    {isAdmin && (
                         <button
                             onClick={() => navigate(-1)}
                             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
@@ -470,7 +480,7 @@ export default function MusicListPage() {
                                         {/* Song Info */}
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-semibold truncate">{song.title}</h3>
-                                            {song.url && (
+                                            {isAdmin && song.url && (
                                                 <a
                                                     href={song.url}
                                                     target="_blank"
@@ -500,8 +510,8 @@ export default function MusicListPage() {
                                                 <span className="font-semibold">{song.likes}</span>
                                             </button>
 
-                                            {/* Delete Button - Only show if authenticated */}
-                                            {isAuthenticated && (
+                                            {/* Delete Button - Only show if Admin */}
+                                            {isAdmin && (
                                                 <button
                                                     onClick={() => handleDelete(song.idEventMusic)}
                                                     className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-400 transition"
