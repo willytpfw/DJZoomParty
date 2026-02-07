@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, sql } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { eventMusic, event } from '../../db/schema';
 import { handleError } from '../../utils/errorHandler';
@@ -184,7 +184,7 @@ router.post('/:musicId/like', async (req: Request, res: Response) => {
         }
 
         const [updatedMusic] = await db.update(eventMusic)
-            .set({ likes: (existingMusic.likes || 0) + 1 })
+            .set({ likes: sql`${eventMusic.likes} + 1` })
             .where(eq(eventMusic.idEventMusic, musicId))
             .returning();
 
@@ -212,10 +212,8 @@ router.post('/:musicId/unlike', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Music not found' });
         }
 
-        const newLikes = Math.max(0, (existingMusic.likes || 0) - 1);
-
         const [updatedMusic] = await db.update(eventMusic)
-            .set({ likes: newLikes })
+            .set({ likes: sql`CASE WHEN ${eventMusic.likes} > 0 THEN ${eventMusic.likes} - 1 ELSE 0 END` })
             .where(eq(eventMusic.idEventMusic, musicId))
             .returning();
 
