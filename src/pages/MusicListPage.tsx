@@ -315,12 +315,6 @@ export default function MusicListPage() {
                     <Music className="w-16 h-16 text-red-500 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-red-400 mb-2">Error</h2>
                     <p className="text-gray-400">{error}</p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="btn-neon mt-6"
-                    >
-                        Volver al Inicio
-                    </button>
                 </div>
             </div>
         );
