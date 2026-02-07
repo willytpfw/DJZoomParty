@@ -52,6 +52,7 @@ export default function MusicListPage() {
     const navigate = useNavigate();
 
     const [music, setMusic] = useState<EventMusic[]>([]);
+    const [likingSongs, setLikingSongs] = useState<Set<number>>(new Set());
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -229,10 +230,14 @@ export default function MusicListPage() {
     };
 
     const handleLike = async (musicId: number) => {
+        if (likingSongs.has(musicId)) return;
+
         const isLiked = likedSongs.has(musicId);
         const endpoint = isLiked ? 'unlike' : 'like';
 
         try {
+            setLikingSongs(prev => new Set(prev).add(musicId));
+
             const response = await fetch(`/api/music/${musicId}/${endpoint}`, {
                 method: 'POST',
             });
@@ -240,7 +245,7 @@ export default function MusicListPage() {
             const data = await response.json();
 
             if (data.success) {
-                // Refresh from server to ensure privacy
+                // Refresh from server to ensure accuracy
                 await fetchMusicByToken();
 
                 if (isLiked) {
@@ -255,6 +260,12 @@ export default function MusicListPage() {
             }
         } catch (err) {
             console.error('Error al dar like');
+        } finally {
+            setLikingSongs(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(musicId);
+                return newSet;
+            });
         }
     };
 
@@ -497,7 +508,8 @@ export default function MusicListPage() {
                                                 {/* Like Button */}
                                                 <button
                                                     onClick={() => handleLike(song.idEventMusic)}
-                                                    className={`like-btn flex items-center gap-2 px-4 py-1.5 rounded-full transition text-sm ${likedSongs.has(song.idEventMusic)
+                                                    disabled={likingSongs.has(song.idEventMusic)}
+                                                    className={`like-btn flex items-center gap-2 px-4 py-1.5 rounded-full transition text-sm ${likingSongs.has(song.idEventMusic) ? 'opacity-70 cursor-wait' : ''} ${likedSongs.has(song.idEventMusic)
                                                         ? 'bg-disco-pink text-white liked shadow-[0_0_15px_-3px_rgba(255,0,128,0.5)]'
                                                         : 'bg-white/5 hover:bg-white/10 text-gray-300'
                                                         }`}
