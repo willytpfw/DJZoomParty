@@ -1,9 +1,8 @@
 
 import { db } from './db/db';
-import { user, company, userCompany, event, eventMusic } from './db/schema';
+import { company, event, eventMusic } from './db/schema';
 import { eq } from 'drizzle-orm';
 import * as jose from 'jose';
-import { addHours } from 'date-fns';
 import './api/server'; // Start server
 
 const PORT = 3001;
