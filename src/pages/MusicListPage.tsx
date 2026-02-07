@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft,
     Music,
@@ -48,6 +48,7 @@ interface YouTubeVideo {
 
 export default function MusicListPage() {
     const { eventToken } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     const [music, setMusic] = useState<EventMusic[]>([]);
@@ -72,7 +73,7 @@ export default function MusicListPage() {
         }
         return new Set();
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Save liked songs to localStorage whenever they change
     useEffect(() => {
@@ -123,21 +124,29 @@ export default function MusicListPage() {
 
     const fetchMusicByToken = async () => {
         try {
-            const token = getToken();
-            console.log('🔑 Token from localStorage:', token ? 'EXISTS' : 'NOT FOUND');
+            // Check for token in URL first (e.g. from a fresh QR scan)
+            const urlToken = searchParams.get('token');
+            if (urlToken) {
+                localStorage.setItem('authToken', urlToken);
+                console.log('✅ Found token in URL, updating localStorage');
+            }
+
+            const token = urlToken || getToken();
+            console.log('🔑 Token for request:', token ? 'EXISTS' : 'NOT FOUND');
 
             const headers: HeadersInit = {};
 
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
-                setIsAuthenticated(true);
-                console.log('✅ Setting isAuthenticated = true');
+                console.log('✅ Setting Authorization header');
             } else {
-                console.log('❌ No token found, staying unauthenticated');
+                console.log('❌ No token found');
             }
 
-            const response = await fetch(`/api/music/event-token/${eventToken}`, { headers });
+            const response = await fetch(`/api/music/event-token/${eventToken}?t=${Date.now()}`, { headers });
             const data = await response.json();
+
+            console.log('DEBUG Frontend - Received isAdmin from server:', data.isAdmin);
 
             if (!data.success) {
                 setError(data.error);
@@ -151,6 +160,7 @@ export default function MusicListPage() {
 
             setMusic(data.music);
             setEvent(data.event);
+            setIsAdmin(data.isAdmin || false);
         } catch (err) {
             setError('Error al cargar la música');
         } finally {
@@ -305,12 +315,6 @@ export default function MusicListPage() {
                     <Music className="w-16 h-16 text-red-500 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-red-400 mb-2">Error</h2>
                     <p className="text-gray-400">{error}</p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="btn-neon mt-6"
-                    >
-                        Volver al Inicio
-                    </button>
                 </div>
             </div>
         );
@@ -321,7 +325,7 @@ export default function MusicListPage() {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
-                    {isAuthenticated && (
+                    {isAdmin && (
                         <button
                             onClick={() => navigate(-1)}
                             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
@@ -459,57 +463,63 @@ export default function MusicListPage() {
                                 .map((song, index) => (
                                     <div
                                         key={song.idEventMusic}
-                                        className="music-card p-4 flex items-center gap-4 stagger-item"
+                                        className="music-card p-5 flex flex-col gap-4 stagger-item"
                                         style={{ animationDelay: `${index * 0.1}s` }}
                                     >
-                                        {/* Number */}
-                                        <div className="w-10 h-10 rounded-full bg-disco-purple/30 flex items-center justify-center font-orbitron font-bold">
-                                            {song.number}
+                                        {/* Title Row - Full width */}
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-disco-purple/30 border border-disco-purple/50 flex items-center justify-center font-orbitron text-xs font-bold text-disco-pink">
+                                                #{song.number}
+                                            </div>
+                                            <h3 className="text-lg font-bold font-orbitron leading-tight break-words flex-1 text-white">
+                                                {song.title}
+                                            </h3>
+
                                         </div>
 
-                                        {/* Song Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold truncate">{song.title}</h3>
-                                            {song.url && (
-                                                <a
-                                                    href={song.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm text-disco-cyan hover:underline flex items-center gap-1"
-                                                >
-                                                    <ExternalLink className="w-3 h-3" />
-                                                    Ver en YouTube
-                                                </a>
-                                            )}
-                                        </div>
+                                        {/* Actions/Info Row */}
+                                        <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                            <div className="flex items-center gap-3">
+                                                {isAdmin && song.url && (
+                                                    <a
+                                                        href={song.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-disco-cyan hover:text-disco-cyan/80 transition-colors flex items-center gap-1 bg-white/5 px-2 py-1 rounded"
+                                                    >
+                                                        <ExternalLink className="w-3 h-3" />
+                                                        YouTube
+                                                    </a>
+                                                )}
+                                            </div>
 
-                                        {/* Action Buttons */}
-                                        <div className="flex items-center gap-2">
-                                            {/* Like Button */}
-                                            <button
-                                                onClick={() => handleLike(song.idEventMusic)}
-                                                className={`like-btn flex items-center gap-2 px-4 py-2 rounded-full transition ${likedSongs.has(song.idEventMusic)
-                                                    ? 'bg-disco-pink text-white liked'
-                                                    : 'bg-white/5 hover:bg-disco-pink/20 text-gray-300'
-                                                    }`}
-                                            >
-                                                <Heart
-                                                    className={`w-5 h-5 ${likedSongs.has(song.idEventMusic) ? 'fill-current' : ''
-                                                        }`}
-                                                />
-                                                <span className="font-semibold">{song.likes}</span>
-                                            </button>
-
-                                            {/* Delete Button - Only show if authenticated */}
-                                            {isAuthenticated && (
+                                            <div className="flex items-center gap-2">
+                                                {/* Like Button */}
                                                 <button
-                                                    onClick={() => handleDelete(song.idEventMusic)}
-                                                    className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-400 transition"
-                                                    title="Eliminar canción"
+                                                    onClick={() => handleLike(song.idEventMusic)}
+                                                    className={`like-btn flex items-center gap-2 px-4 py-1.5 rounded-full transition text-sm ${likedSongs.has(song.idEventMusic)
+                                                        ? 'bg-disco-pink text-white liked shadow-[0_0_15px_-3px_rgba(255,0,128,0.5)]'
+                                                        : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                                                        }`}
                                                 >
-                                                    <Trash2 className="w-5 h-5" />
+                                                    <Heart
+                                                        className={`w-4 h-4 ${likedSongs.has(song.idEventMusic) ? 'fill-current' : ''
+                                                            }`}
+                                                    />
+                                                    <span className="font-bold">{song.likes}</span>
                                                 </button>
-                                            )}
+
+                                                {/* Delete Button - Only show if Admin */}
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={() => handleDelete(song.idEventMusic)}
+                                                        className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-all border border-transparent hover:border-red-500/30"
+                                                        title="Eliminar canción"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
