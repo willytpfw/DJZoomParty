@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -75,6 +75,7 @@ export default function MusicListPage() {
         return new Set();
     });
     const [isAdmin, setIsAdmin] = useState(false);
+    const searchCache = useRef<Map<string, YouTubeVideo[]>>(new Map());
 
     // Save liked songs to localStorage whenever they change
     useEffect(() => {
@@ -169,35 +170,79 @@ export default function MusicListPage() {
         }
     };
 
-    // Dynamic search with debounce
-    useEffect(() => {
-        if (!searchQuery.trim()) {
+    const performSearch = async (query: string) => {
+        const trimmedQuery = query.trim();
+        if (!trimmedQuery) {
             setSearchResults([]);
             return;
         }
 
-        setSearching(true);
-        const debounceTimer = setTimeout(async () => {
-            try {
-                const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
-                const data = await response.json();
+        // Check cache first
+        if (searchCache.current.has(trimmedQuery)) {
+            console.log('🔍 Returning cached results for:', trimmedQuery);
+            setSearchResults(searchCache.current.get(trimmedQuery)!);
+            setSearching(false);
+            return;
+        }
 
-                if (data.success) {
-                    setSearchResults(data.videos);
-                } else {
-                    console.error('Search error:', data.error);
-                    setSearchResults([]);
-                }
-            } catch (err) {
-                console.error('Error al buscar en YouTube:', err);
+        setSearching(true);
+        try {
+            const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(trimmedQuery)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Store in cache
+                searchCache.current.set(trimmedQuery, data.videos);
+                setSearchResults(data.videos);
+            } else {
+                console.error('Search error:', data.error);
                 setSearchResults([]);
-            } finally {
-                setSearching(false);
             }
-        }, 500); // 500ms debounce
+        } catch (err) {
+            console.error('Error al buscar en YouTube:', err);
+            setSearchResults([]);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    // Dynamic search with debounce
+    useEffect(() => {
+        const threshold = parseInt(import.meta.env.VITE_CHARCTERSEEKYOUTUBE || '5', 10);
+        const trimmedQuery = searchQuery.trim();
+
+        if (!trimmedQuery) {
+            setSearchResults([]);
+            return;
+        }
+
+        // Require minimum length for auto-search
+        if (trimmedQuery.length < threshold) {
+            // Even if below threshold, if it's in cache, show it
+            if (searchCache.current.has(trimmedQuery)) {
+                setSearchResults(searchCache.current.get(trimmedQuery)!);
+            }
+            return;
+        }
+
+        // If results are already cached, update immediately without debounce
+        if (searchCache.current.has(trimmedQuery)) {
+            setSearchResults(searchCache.current.get(trimmedQuery)!);
+            return;
+        }
+
+        const debounceTimer = setTimeout(() => {
+            performSearch(trimmedQuery);
+        }, 800); // 800ms debounce for better quota management
 
         return () => clearTimeout(debounceTimer);
     }, [searchQuery]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            performSearch(searchQuery);
+        }
+    };
 
     const handleAddSong = async (video: YouTubeVideo) => {
         if (!event) return;
@@ -405,7 +450,8 @@ export default function MusicListPage() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Busca canciones - resultados automáticos..."
+                            onKeyDown={handleKeyDown}
+                            placeholder="Busca canciones ..."
                             className="input-neon pl-4 pr-10"
                         />
                         {searching && (
