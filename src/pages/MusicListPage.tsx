@@ -9,6 +9,7 @@ import {
     Youtube,
     Instagram,
     Facebook,
+    Globe,
     Trash2,
     Plus
 } from 'lucide-react';
@@ -34,6 +35,7 @@ interface Event {
         urlInstagram?: string;
         urlFacebook?: string;
         url?: string;
+        webPage?: string;
     };
 }
 
@@ -408,6 +410,17 @@ export default function MusicListPage() {
                                                 title="Instagram"
                                             >
                                                 <Instagram className="w-6 h-6" />
+                                            </a>
+                                        )}
+                                        {event.company.webPage && (
+                                            <a
+                                                href={event.company.webPage}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-emerald-400 transition-colors"
+                                                title="Sitio Web"
+                                            >
+                                                <Globe className="w-6 h-6" />
                                             </a>
                                         )}
                                         {event.company.urlFacebook && (
