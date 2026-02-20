@@ -22,6 +22,7 @@ export const company = pgTable('company', {
     keyCompany: varchar('key_company', { length: 8 }).unique().notNull(),
     urlInstagram: varchar('url_instagram', { length: 500 }),
     urlFacebook: varchar('url_facebook', { length: 500 }),
+    webPage: varchar('web_page', { length: 500 }),
 });
 
 // UserCompany junction table
