@@ -3,6 +3,7 @@ import { db } from '../../db/db';
 import { appRequest } from '../../db/schema';
 import { handleError } from '../../utils/errorHandler';
 import { sendEmail } from '../../utils/emailHelper';
+import { sendPinToUser } from '../../utils/smsHelper';
 import * as jose from 'jose';
 
 const router = Router();
@@ -40,6 +41,9 @@ router.post('/register', async (req: Request, res: Response) => {
         // Generate 10-character random private key
         const key = generateKey(10);
 
+        // Generate 6-digit PIN and send via SMS
+        const pin = await sendPinToUser(String(movil).substring(0, 10), String(User));
+
         // Get client IP
         const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
         const ip = (typeof rawIp === 'string' ? rawIp : String(rawIp)).substring(0, 45);
@@ -49,10 +53,11 @@ router.post('/register', async (req: Request, res: Response) => {
             companyName: String(Company_Name).substring(0, 100),
             userName: String(User).substring(0, 25),
             eMail: String(eMail).substring(0, 50),
-            movil: movil ? String(movil).substring(0, 10) : null,
+            movil: String(movil).substring(0, 10),
             ip,
             key,
             active: false,
+            pin,
         });
 
         // Create JWT signed with SignJWS, payload includes Key for later lookup
@@ -68,15 +73,18 @@ router.post('/register', async (req: Request, res: Response) => {
             .setExpirationTime('48h')
             .sign(secret);
 
-        // Build activation URL
-        const url_jwt = `${API_URL}/v1/auth/validate?token=${token}`;
+        // Build activation URL pointing to frontend PIN validation form
+        // Assumes frontend route for PIN validation is /validate-pin
+        const url_jwt = `${API_URL}/validate-pin?token=${token}`;
 
         // Send activation email
         await sendEmail(String(eMail), 'Validate APP.TPFW.COM.MX', url_jwt);
 
         return res.json({
             success: true,
-            message: 'Registration request received. Please check your email to activate your account.',
+            message: 'Registration request received. Please check your mobile for the verification PIN and your email for the activation link.',
+            // Expose PIN in development for easier testing
+            ...(process.env.NODE_ENV === 'development' && { pin }),
         });
     } catch (err) {
         const { message } = handleError(err);

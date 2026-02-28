@@ -76,6 +76,7 @@ export const appRequest = pgTable('app_request', {
     requestDate: timestamp('request_date', { withTimezone: true }).defaultNow(),
     key: char('key', { length: 10 }).notNull(),
     active: boolean('active').default(false),
+    pin: varchar('pin', { length: 8 }),
 });
 
 // Error table
