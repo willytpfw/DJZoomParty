@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, boolean, integer, timestamp, doublePrecision, text } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, boolean, integer, timestamp, doublePrecision, text, char } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // User table
@@ -63,6 +63,19 @@ export const userLogin = pgTable('user_login', {
     pin: varchar('pin', { length: 8 }).notNull(),
     ip: varchar('ip', { length: 45 }),
     response: varchar('response', { length: 10 }),
+});
+
+// AppRequest table — stores app registration requests
+export const appRequest = pgTable('app_request', {
+    idAppRequest: serial('id_app_request').primaryKey(),
+    companyName: varchar('company_name', { length: 100 }).notNull(),
+    userName: varchar('user_name', { length: 25 }).notNull(),
+    eMail: varchar('email', { length: 50 }).notNull(),
+    movil: varchar('movil', { length: 10 }),
+    ip: varchar('ip', { length: 45 }),
+    requestDate: timestamp('request_date', { withTimezone: true }).defaultNow(),
+    key: char('key', { length: 10 }).notNull(),
+    active: boolean('active').default(false),
 });
 
 // Error table
@@ -139,3 +152,5 @@ export type UserLogin = typeof userLogin.$inferSelect;
 export type NewUserLogin = typeof userLogin.$inferInsert;
 export type Error = typeof error.$inferSelect;
 export type NewError = typeof error.$inferInsert;
+export type AppRequest = typeof appRequest.$inferSelect;
+export type NewAppRequest = typeof appRequest.$inferInsert;

@@ -6,6 +6,8 @@ import authRoutes from './routes/auth';
 import eventsRoutes from './routes/events';
 import musicRoutes from './routes/music';
 import youtubeRoutes from './routes/youtube';
+import appRoutes from './routes/app';
+import validateRoutes from './routes/validate';
 import { errorMiddleware } from '../utils/errorHandler';
 
 import path from 'path';
@@ -36,6 +38,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/music', musicRoutes);
 app.use('/api/youtube', youtubeRoutes);
+app.use('/v1/app', appRoutes);
+app.use('/v1/auth', validateRoutes);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
