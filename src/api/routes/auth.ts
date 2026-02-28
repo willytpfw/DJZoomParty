@@ -57,10 +57,6 @@ router.post('/validate-token', async (req: Request, res: Response) => {
         }
         // If UserName is present, validate user login
         else if (payload.UserName) {
-            // Strict PIN Validation: Token MUST contain PIN
-            if (!payload.PIN) {
-                return res.status(401).json({ success: false, error: 'Invalid token: PIN missing' });
-            }
 
             const userData = await db.query.user.findFirst({
                 where: eq(user.userName, payload.UserName),
@@ -87,7 +83,6 @@ router.post('/validate-token', async (req: Request, res: Response) => {
             const validLogin = await db.query.userLogin.findFirst({
                 where: and(
                     eq(userLogin.idUser, userData.idUser),
-                    eq(userLogin.pin, payload.PIN), // Check specific PIN from token
                     gt(userLogin.date, twentyFourHoursAgo),
                     eq(userLogin.response, '200')
                 ),
