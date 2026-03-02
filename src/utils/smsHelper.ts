@@ -17,13 +17,18 @@ export async function sendPinToUser(movil: string, userName: string): Promise<st
     // Generate 6-digit PIN
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send SMS via Twilio
+    // Send SMS via Twilio if is in production
     try {
-        await twilioClient.messages.create({
-            body: `Tu código de verificación AppEvents es: ${pin}`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: `+52${movil}`, // Assuming Mexico phone numbers
-        });
+        if (process.env.PRODUCTION === 'false') {
+            console.log(`PIN:${pin}`);
+            return pin;
+        }
+        else
+            await twilioClient.messages.create({
+                body: `Tu código de verificación para ${process.env.APP_NAME} es: ${pin}`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: `+52${movil}`, // Assuming Mexico phone numbers
+            });
         console.log(`SMS sent to +52${movil}`);
     } catch (twilioError) {
         console.error('Twilio error:', twilioError);

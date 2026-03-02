@@ -74,11 +74,11 @@ router.post('/register', async (req: Request, res: Response) => {
             .sign(secret);
 
         // Build activation URL pointing to frontend PIN validation form
-        // Assumes frontend route for PIN validation is /validate-pin
+        // Assumes frontend route for PIN validation is /validate-pin   
         const url_jwt = `${API_URL}/validate-pin?token=${token}`;
 
         // Send activation email
-        await sendEmail(String(eMail), 'Validate APP.TPFW.COM.MX', url_jwt);
+        await sendEmail(String(eMail), `Validar acceso a ${process.env.APP_NAME}`, url_jwt);
 
         return res.json({
             success: true,
