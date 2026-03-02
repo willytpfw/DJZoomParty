@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Loader2, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ValidatePinPage() {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
 
     const token = searchParams.get('token');
 
@@ -89,14 +88,8 @@ export default function ValidatePinPage() {
                             ¡Cuenta verificada y activada con éxito!
                         </div>
                         <p className="text-gray-300">
-                            Te hemos enviado un correo electrónico con tus credenciales de acceso (usuario y contraseña temporal).
+                            Te hemos enviado un correo electrónico con tu acceso a la aplicación.
                         </p>
-                        <button
-                            onClick={() => navigate('/')}
-                            className="btn-neon w-full"
-                        >
-                            Ir al Inicio
-                        </button>
                     </div>
                 ) : (
                     <form onSubmit={handleVerifyPin} className="space-y-6">

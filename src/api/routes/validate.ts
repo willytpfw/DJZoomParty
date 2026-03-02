@@ -152,7 +152,7 @@ async function handleValidate(req: Request, res: Response) {
         const finalUrl = `${API_URL}?token=${finalToken}`;
 
         // Send final email with JWT URL
-        await sendEmail(eMail, 'Enter APP.TPFW.COM.MX', finalUrl);
+        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, finalUrl);
 
         return res.json({
             success: true,
@@ -299,7 +299,7 @@ async function handleValidatePin(req: Request, res: Response) {
         const finalUrl = `${API_URL}?token=${finalToken}`;
 
         // Send final email with JWT URL
-        await sendEmail(eMail, 'Enter APP.TPFW.COM.MX', finalUrl);
+        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, finalUrl);
 
         return res.json({
             success: true,
