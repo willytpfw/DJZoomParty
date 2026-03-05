@@ -157,7 +157,7 @@ router.post('/send-pin', async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, error: 'User has no mobile number' });
         }
 
-        const pin = await sendPinToUser(userData.movil, userName);
+        const pin = await sendPinToUser(userData.movil, userName, userData.eMail || undefined);
 
         // Get client IP
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
@@ -227,7 +227,7 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
                 return res.status(400).json({ success: false, error: 'PIN expired and user has no mobile number to receive a new one.' });
             }
 
-            const newPin = await sendPinToUser(userData.movil, userData.userName);
+            const newPin = await sendPinToUser(userData.movil, userData.userName, userData.eMail || undefined);
 
             // Identify client IP
             const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';

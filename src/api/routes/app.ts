@@ -42,7 +42,7 @@ router.post('/register', async (req: Request, res: Response) => {
         const key = generateKey(10);
 
         // Generate 6-digit PIN and send via SMS
-        const pin = await sendPinToUser(String(movil).substring(0, 10), String(User));
+        const pin = await sendPinToUser(String(movil).substring(0, 10), String(User), String(eMail));
 
         // Get client IP
         const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
