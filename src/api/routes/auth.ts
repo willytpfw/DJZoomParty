@@ -5,7 +5,7 @@ import { user, userLogin, company, userCompany, event } from '../../db/schema';
 import { verifyToken, createToken } from '../../utils/jws';
 import { isWithinHours, getCurrentDateUTC6 } from '../../utils/timezone';
 import { handleError } from '../../utils/errorHandler';
-import { addHours } from 'date-fns';
+import { addHours, addMonths } from 'date-fns';
 
 const router = Router();
 
@@ -157,7 +157,7 @@ router.post('/send-pin', async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, error: 'User has no mobile number' });
         }
 
-        const pin = await sendPinToUser(userData.movil, userName);
+        const pin = await sendPinToUser(userData.movil, userName, userData.eMail || undefined);
 
         // Get client IP
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
@@ -168,7 +168,7 @@ router.post('/send-pin', async (req: Request, res: Response) => {
             pin,
             ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
             response: 'pending',
-            date: getCurrentDateUTC6(),
+            date: addMonths(getCurrentDateUTC6(), 1),
         });
 
         res.json({
@@ -200,8 +200,8 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        // Check for valid PIN in last 24 hours
-        const twentyFourHoursAgo = addHours(getCurrentDateUTC6(), -24);
+        // Check for valid PIN in last 1 Month
+        const twentyFourHoursAgo = addMonths(getCurrentDateUTC6(), -1);
 
         // 1. Check if PIN exists for this user (ignoring time first to detect expired)
         const loginRecord = await db.query.userLogin.findFirst({
@@ -227,7 +227,7 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
                 return res.status(400).json({ success: false, error: 'PIN expired and user has no mobile number to receive a new one.' });
             }
 
-            const newPin = await sendPinToUser(userData.movil, userData.userName);
+            const newPin = await sendPinToUser(userData.movil, userData.userName, userData.eMail || undefined);
 
             // Identify client IP
             const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';

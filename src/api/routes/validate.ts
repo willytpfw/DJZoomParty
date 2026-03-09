@@ -6,6 +6,7 @@ import { handleError } from '../../utils/errorHandler';
 import { sendEmail } from '../../utils/emailHelper';
 import { getCurrentDateUTC6 } from '../../utils/timezone';
 import * as jose from 'jose';
+import { addMonths } from 'date-fns/fp';
 
 const router = Router();
 
@@ -280,7 +281,7 @@ async function handleValidatePin(req: Request, res: Response) {
             pin: String(pin),
             ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
             response: '200',
-            date: getCurrentDateUTC6(),
+            date: addMonths(1, Number(getCurrentDateUTC6()))
         });
 
         // Create final JWT signed with SignJWS
@@ -292,7 +293,7 @@ async function handleValidatePin(req: Request, res: Response) {
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('24h')
+            .setExpirationTime('1y')
             .sign(finalSecret);
 
         // Build final URL
