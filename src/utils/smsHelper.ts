@@ -28,14 +28,14 @@ export async function sendPinToUser(movil: string, userName: string, email?: str
             // Still send an email if SEND_SMS is false, even in development, to verify email flow
             if (process.env.SEND_SMS == 'false' && email) {
                 console.log(`PIN sent via eMail:${pin}`);
-                await sendEmail(email, `Validar acceso a ${process.env.APP_NAME}`, `Tu código de verificación para ${process.env.APP_NAME} es: ${pin}`);
+                await sendEmail(email, `PIN de acceso a ${process.env.APP_NAME}`, `Tu código de verificación para ${process.env.APP_NAME} es: ${pin}`);
             }
             return pin;
         }
 
         if (process.env.SEND_SMS == 'false') {
             if (email) {
-                await sendEmail(email, `Validar acceso a ${process.env.APP_NAME}`, `Tu código de verificación para ${process.env.APP_NAME} es: ${pin}`);
+                await sendEmail(email, `PIN de acceso a ${process.env.APP_NAME}`, `Tu código de verificación para ${process.env.APP_NAME} es: ${pin}`);
                 console.log(`PIN sent via Email to ${email}`);
             } else {
                 console.error(`Attempted to send PIN via Email to ${userName} but no email was provided.`);
