@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { eq, and } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { appRequest } from '../../db/schema';
 import { handleError } from '../../utils/errorHandler';
@@ -59,6 +60,50 @@ router.post('/register', async (req: Request, res: Response) => {
             active: false,
             pin,
         });
+
+        return res.json({
+            success: true,
+            message: 'Registration request received. Please check your mobile for the verification PIN and your email for the activation link.',
+            // Expose PIN in development for easier testing
+            ...(process.env.NODE_ENV === 'development' && { pin }),
+        });
+
+    } catch (err) {
+        const { message } = handleError(err);
+        return res.status(500).json({ success: false, error: message });
+    }
+});
+
+
+router.post('/validate-pin', async (req: Request, res: Response) => {
+    try {
+        const { pin } = req.body;
+
+        if (!pin) {
+            return res.status(400).json({
+                success: false,
+                error: 'pin is required',
+            });
+        }
+
+        const existingRequest = await db.query.appRequest.findFirst({
+            where: and(
+                eq(appRequest.pin, String(pin)),
+                eq(appRequest.active, false)
+            ),
+        });
+
+        if (!existingRequest) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid PIN or already active',
+            });
+        }
+
+        const Company_Name = existingRequest.companyName;
+        const User = existingRequest.userName;
+        const eMail = existingRequest.eMail;
+        const key = existingRequest.key;
 
         // Create JWT signed with SignJWS, payload includes Key for later lookup
         const secret = new TextEncoder().encode(SIGN_SECRET);
