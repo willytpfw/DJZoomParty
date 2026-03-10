@@ -70,7 +70,7 @@ router.post('/register', async (req: Request, res: Response) => {
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('48h')
+            .setExpirationTime('1year')
             .sign(secret);
 
         // Build activation URL pointing to frontend PIN validation form
