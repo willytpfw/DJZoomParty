@@ -5,6 +5,7 @@ import { event, userCompany, user } from '../../db/schema';
 import { createToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
 import { randomBytes } from 'crypto';
+import { createYouTubePlaylist } from '../utils/youtubeAuth';
 
 const router = Router();
 
@@ -57,7 +58,7 @@ router.get('/:eventId', async (req: Request, res: Response) => {
 // Create new event
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { idCompany, name, eventDate, positionLongitud, positionLatitud } = req.body;
+        const { idCompany, name, eventDate, positionLongitud, positionLatitud, playList } = req.body;
 
         if (!idCompany || !eventDate || !name) {
             return res.status(400).json({
@@ -69,6 +70,32 @@ router.post('/', async (req: Request, res: Response) => {
         // Generate unique event token (16 characters)
         const eventToken = randomBytes(8).toString('hex');
 
+        let youtubePlaylistId: string | null = null;
+        const isPlayListEnabled = playList === true || playList === 'true';
+
+        if (isPlayListEnabled) {
+            try {
+                // If PlayList is true, try to create the playlist
+                const createdPlaylistId = await createYouTubePlaylist(
+                    name.substring(0, 50), 
+                    `Playlist for event ${name} created by AppEvents`
+                );
+                
+                if (createdPlaylistId) {
+                    youtubePlaylistId = createdPlaylistId;
+                } else {
+                    console.warn('Playlist creation requested but failed or no token was found.');
+                }
+            } catch (error: any) {
+                console.error('Error attempting to create YouTube playlist during event creation', error);
+                
+                return res.status(400).json({
+                    success: false,
+                    error: `No se pudo crear la PlayList en YouTube: ${error.message}. (Si acabas de habilitar la API, espera unos minutos y vuelve a intentarlo).`
+                });
+            }
+        }
+
         const [newEvent] = await db.insert(event).values({
             idCompany: parseInt(idCompany),
             name: name.substring(0, 50),
@@ -76,6 +103,8 @@ router.post('/', async (req: Request, res: Response) => {
             eventToken,
             positionLongitud: positionLongitud ? parseFloat(positionLongitud) : null,
             positionLatitud: positionLatitud ? parseFloat(positionLatitud) : null,
+            playList: isPlayListEnabled,
+            youtubePlaylistId,
             active: true,
             creationDate: new Date(),
         }).returning();

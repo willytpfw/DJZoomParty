@@ -49,7 +49,7 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
         }
 
         const music = await db.query.eventMusic.findMany({
-            where: eq(eventMusic.idEvent, eventId),
+            where: sql`${eventMusic.idEvent} = ${eventId} AND ${eventMusic.visible} = true`,
             orderBy: [asc(eventMusic.number)],
         });
 
@@ -113,7 +113,7 @@ router.get('/event-token/:eventToken', async (req: Request, res: Response) => {
         }
 
         const music = await db.query.eventMusic.findMany({
-            where: eq(eventMusic.idEvent, eventData.idEvent),
+            where: sql`${eventMusic.idEvent} = ${eventData.idEvent} AND ${eventMusic.visible} = true`,
             orderBy: [asc(eventMusic.number)],
         });
 

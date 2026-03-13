@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Calendar, MapPin, Save, Loader2, Type } from 'lucide-react';
+import { X, Calendar, MapPin, Save, Loader2, Type, Youtube } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Event {
@@ -9,6 +9,7 @@ interface Event {
     positionLongitud: number | null;
     positionLatitud: number | null;
     active: boolean;
+    playList?: boolean;
 }
 
 interface EventFormProps {
@@ -28,6 +29,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
         positionLatitud: event?.positionLatitud?.toString() || '',
         positionLongitud: event?.positionLongitud?.toString() || '',
         active: event?.active ?? true,
+        playList: event?.playList ?? false,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -80,6 +82,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                 positionLatitud: formData.positionLatitud ? parseFloat(formData.positionLatitud) : null,
                 positionLongitud: formData.positionLongitud ? parseFloat(formData.positionLongitud) : null,
                 active: formData.active,
+                playList: formData.playList,
             });
         } finally {
             setLoading(false);
@@ -215,6 +218,23 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                             />
                             <label htmlFor="active" className="text-gray-300">
                                 {t('eventForm.active_event')}
+                            </label>
+                        </div>
+                    )}
+
+                    {/* YouTube Playlist */}
+                    {!event && (
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="playList"
+                                checked={formData.playList}
+                                onChange={(e) => setFormData(prev => ({ ...prev, playList: e.target.checked }))}
+                                className="w-5 h-5 rounded border-red-500 bg-transparent text-red-500 focus:ring-red-500"
+                            />
+                            <label htmlFor="playList" className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                                <Youtube className="w-4 h-4 text-red-500" />
+                                {t('eventForm.create_playlist')}
                             </label>
                         </div>
                     )}

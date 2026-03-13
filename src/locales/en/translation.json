@@ -118,6 +118,7 @@
     "active_event": "Active event",
     "cancel": "Cancel",
     "saving": "Saving...",
-    "save": "Save"
+    "save": "Save",
+    "create_playlist": "Create YouTube Playlist"
   }
 }

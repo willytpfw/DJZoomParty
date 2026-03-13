@@ -118,6 +118,7 @@
     "active_event": "Evento activo",
     "cancel": "Cancelar",
     "saving": "Guardando...",
-    "save": "Guardar"
+    "save": "Guardar",
+    "create_playlist": "Crear Playlist en YouTube"
   }
 }

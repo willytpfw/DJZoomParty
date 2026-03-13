@@ -10,7 +10,8 @@ import {
     ArrowLeft,
     CheckCircle,
     XCircle,
-    Search
+    Search,
+    Youtube
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import QRCodeModal from '../components/QRCodeModal';
@@ -26,6 +27,8 @@ interface Event {
     eventToken: string;
     positionLongitud: number | null;
     positionLatitud: number | null;
+    playList?: boolean;
+    youtubePlaylistId?: string | null;
     company?: {
         name: string;
         keyCompany: string;
@@ -363,6 +366,18 @@ export default function EventListPage() {
                                         {/* Actions */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-2">
+                                                {event.playList && event.youtubePlaylistId && (
+                                                    <a
+                                                        href={`https://www.youtube.com/playlist?list=${event.youtubePlaylistId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition"
+                                                        title="Ver YouTube Playlist"
+                                                    >
+                                                        <Youtube className="w-4 h-4" />
+                                                    </a>
+                                                )}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();

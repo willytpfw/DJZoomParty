@@ -43,6 +43,8 @@ export const event = pgTable('event', {
     eventToken: varchar('event_token', { length: 16 }).unique().notNull(),
     positionLongitud: doublePrecision('position_longitud'),
     positionLatitud: doublePrecision('position_latitud'),
+    playList: boolean('play_list').default(false),
+    youtubePlaylistId: varchar('youtube_playlist_id', { length: 255 }),
 });
 
 // EventMusic table
@@ -53,6 +55,7 @@ export const eventMusic = pgTable('event_music', {
     url: varchar('url', { length: 255 }).notNull(),
     title: varchar('title', { length: 100 }).notNull(),
     likes: integer('likes').default(0),
+    visible: boolean('visible').default(true),
 });
 
 // UserLogin table
