@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Music, Calendar, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PinVerification from '../components/PinVerification';
 
 interface CompanyData {
@@ -18,6 +19,7 @@ interface TokenPayload {
 }
 
 export default function MainPage() {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -36,7 +38,7 @@ export default function MainPage() {
         const token = searchParams.get('token');
 
         if (!token) {
-            setError('No se proporcionó token de acceso');
+            setError(t('main.error_no_token'));
             setLoading(false);
             return;
         }
@@ -51,7 +53,7 @@ export default function MainPage() {
             const data = await response.json();
 
             if (!data.success) {
-                setError(data.error || 'Token inválido');
+                setError(data.error || t('main.error_invalid_token'));
                 setLoading(false);
                 return;
             }
@@ -80,7 +82,7 @@ export default function MainPage() {
 
             setLoading(false);
         } catch (err) {
-            setError('Error de conexión con el servidor');
+            setError(t('main.error_connection'));
             setLoading(false);
         }
     };
@@ -103,7 +105,7 @@ export default function MainPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-8">
                 <div className="spinner mb-6" />
-                <p className="text-xl text-gray-300 font-orbitron">Validando acceso...</p>
+                <p className="text-xl text-gray-300 font-orbitron">{t('main.validating_access')}</p>
             </div>
         );
     }
@@ -113,13 +115,13 @@ export default function MainPage() {
             <div className="min-h-screen flex flex-col items-center justify-center p-8">
                 <div className="glass-card p-8 max-w-md w-full text-center fade-in">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-                    <h1 className="text-2xl font-orbitron font-bold mb-4 text-red-400">Error de Acceso</h1>
+                    <h1 className="text-2xl font-orbitron font-bold mb-4 text-red-400">{t('main.access_error')}</h1>
                     <p className="text-gray-300 mb-6">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="btn-neon"
                     >
-                        Reintentar
+                        {t('main.retry')}
                     </button>
                 </div>
             </div>
@@ -148,7 +150,7 @@ export default function MainPage() {
             </h1>
 
             <p className="text-xl text-gray-400 mb-8 text-center fade-in" style={{ animationDelay: '0.2s' }}>
-                Plataforma de Eventos y Música
+                {t('main.platform_subtitle')}
             </p>
 
             {/* PIN Verification Section */}
@@ -170,14 +172,14 @@ export default function MainPage() {
                         className="btn-neon flex items-center gap-3 px-8"
                     >
                         <Calendar className="w-5 h-5" />
-                        Ver Eventos
+                        {t('main.view_events')}
                     </button>
                     <button
                         onClick={() => navigate('/music')}
                         className="btn-neon btn-neon-pink flex items-center gap-3 px-8"
                     >
                         <Music className="w-5 h-5" />
-                        Lista de Música
+                        {t('main.music_list')}
                     </button>
                 </div>
             )}
