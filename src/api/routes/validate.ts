@@ -150,10 +150,11 @@ async function handleValidate(req: Request, res: Response) {
             .sign(finalSecret);
 
         // Build final URL
+        const AccessText = 'Da clic en la siguiente dirección para acceder a la aplicacion. \n\n';
         const finalUrl = `${API_URL}?token=${finalToken}`;
 
         // Send final email with JWT URL
-        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, finalUrl);
+        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, AccessText + finalUrl);
 
         return res.json({
             success: true,
@@ -296,11 +297,12 @@ async function handleValidatePin(req: Request, res: Response) {
             .setExpirationTime('1y')
             .sign(finalSecret);
 
+        const AccessText = 'Da clic en la siguiente dirección para acceder a la aplicacion. \n\n';
         // Build final URL
         const finalUrl = `${API_URL}?token=${finalToken}`;
 
         // Send final email with JWT URL
-        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, finalUrl);
+        await sendEmail(eMail, `Acceso a ${process.env.APP_NAME}`, AccessText + finalUrl);
 
         return res.json({
             success: true,

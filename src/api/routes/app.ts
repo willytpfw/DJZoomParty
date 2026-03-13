@@ -120,15 +120,16 @@ router.post('/validate-pin', async (req: Request, res: Response) => {
                 .sign(secret);
 
             // Build activation URL pointing to frontend PIN validation form
-            // Assumes frontend route for PIN validation is /validate-pin   
+            // Assumes frontend route for PIN validation is /validate-pin 
+            const validateText = 'De clic en la siguiente dirección para validar la solicitud de compra para la aplicacion. \n\n';
             const url_jwt = `${API_URL}/validate-pin?token=${token}`;
 
             // Send activation email
-            await sendEmail(String(eMail), `Validar acceso a ${process.env.APP_NAME}`, url_jwt);
+            await sendEmail(String(eMail), `Validar acceso a ${process.env.APP_NAME}`, validateText + url_jwt);
 
             return res.json({
                 success: true,
-                message: 'Registration request received. Please check your mobile for the verification PIN and your email for the activation link.',
+                message: 'Registration request received. Please check verification PIN on your email for the activation link.',
                 // Expose PIN in development for easier testing
                 ...(process.env.NODE_ENV === 'development' && { pin }),
             });
