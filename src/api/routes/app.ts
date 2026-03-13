@@ -78,6 +78,7 @@ router.post('/register', async (req: Request, res: Response) => {
 router.post('/validate-pin', async (req: Request, res: Response) => {
     try {
         const { pin } = req.body;
+        const { create } = req.body;
 
         if (!pin) {
             return res.status(400).json({
@@ -99,38 +100,48 @@ router.post('/validate-pin', async (req: Request, res: Response) => {
                 error: 'Invalid PIN or already active',
             });
         }
+        if (create) {
+            const Company_Name = existingRequest.companyName;
+            const User = existingRequest.userName;
+            const eMail = existingRequest.eMail;
+            const key = existingRequest.key;
 
-        const Company_Name = existingRequest.companyName;
-        const User = existingRequest.userName;
-        const eMail = existingRequest.eMail;
-        const key = existingRequest.key;
+            // Create JWT signed with SignJWS, payload includes Key for later lookup
+            const secret = new TextEncoder().encode(SIGN_SECRET);
+            const token = await new jose.SignJWT({
+                Key: key,
+                Company_Name: String(Company_Name),
+                User: String(User),
+                eMail: String(eMail)
+            })
+                .setProtectedHeader({ alg: 'HS256' })
+                .setIssuedAt()
+                .setExpirationTime('1year')
+                .sign(secret);
 
-        // Create JWT signed with SignJWS, payload includes Key for later lookup
-        const secret = new TextEncoder().encode(SIGN_SECRET);
-        const token = await new jose.SignJWT({
-            Key: key,
-            Company_Name: String(Company_Name),
-            User: String(User),
-            eMail: String(eMail)
-        })
-            .setProtectedHeader({ alg: 'HS256' })
-            .setIssuedAt()
-            .setExpirationTime('1year')
-            .sign(secret);
+            // Build activation URL pointing to frontend PIN validation form
+            // Assumes frontend route for PIN validation is /validate-pin   
+            const url_jwt = `${API_URL}/validate-pin?token=${token}`;
 
-        // Build activation URL pointing to frontend PIN validation form
-        // Assumes frontend route for PIN validation is /validate-pin   
-        const url_jwt = `${API_URL}/validate-pin?token=${token}`;
+            // Send activation email
+            await sendEmail(String(eMail), `Validar acceso a ${process.env.APP_NAME}`, url_jwt);
 
-        // Send activation email
-        await sendEmail(String(eMail), `Validar acceso a ${process.env.APP_NAME}`, url_jwt);
+            return res.json({
+                success: true,
+                message: 'Registration request received. Please check your mobile for the verification PIN and your email for the activation link.',
+                // Expose PIN in development for easier testing
+                ...(process.env.NODE_ENV === 'development' && { pin }),
+            });
+        }
+        else {
+            return res.json({
+                success: true,
+                message: 'PIN Valido',
+                // Expose PIN in development for easier testing
+                ...(process.env.NODE_ENV === 'development' && { pin }),
+            });
+        }
 
-        return res.json({
-            success: true,
-            message: 'Registration request received. Please check your mobile for the verification PIN and your email for the activation link.',
-            // Expose PIN in development for easier testing
-            ...(process.env.NODE_ENV === 'development' && { pin }),
-        });
     } catch (err) {
         const { message } = handleError(err);
         return res.status(500).json({ success: false, error: message });
