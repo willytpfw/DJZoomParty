@@ -9,6 +9,7 @@ import youtubeRoutes from './routes/youtube';
 import appRoutes from './routes/app';
 import validateRoutes from './routes/validate';
 import { errorMiddleware } from '../utils/errorHandler';
+import { startYoutubeSyncJob } from './jobs/youtubeSync';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -56,6 +57,9 @@ app.get('*', (_req: Request, res: Response) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    
+    // Start background jobs
+    startYoutubeSyncJob();
 });
 
 export default app;

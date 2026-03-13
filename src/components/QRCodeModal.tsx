@@ -1,6 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Download, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface QRCodeModalProps {
     url: string;
@@ -10,6 +11,7 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRCodeModalProps) {
+    const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
 
     const handleCopyUrl = async () => {
@@ -18,7 +20,7 @@ export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRC
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            alert('Error al copiar URL');
+            alert(t('qrCode.error_copy_url'));
         }
     };
 
@@ -52,7 +54,7 @@ export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRC
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-orbitron font-bold neon-text-cyan">
-                        Código QR
+                        {t('qrCode.title')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -76,13 +78,13 @@ export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRC
 
                 {/* Event Token */}
                 <div className="text-center mb-6">
-                    <p className="text-sm text-gray-400 mb-1">Evento</p>
+                    <p className="text-sm text-gray-400 mb-1">{t('qrCode.event_label')}</p>
                     <p className="font-mono text-lg text-disco-purple">{eventName}</p>
                 </div>
 
                 {/* URL */}
                 <div className="bg-white/5 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-gray-400 mb-2">URL del Evento</p>
+                    <p className="text-sm text-gray-400 mb-2">{t('qrCode.event_url')}</p>
                     <p className="text-xs break-all text-gray-300">{url}</p>
                 </div>
 
@@ -95,12 +97,12 @@ export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRC
                         {copied ? (
                             <>
                                 <Check className="w-5 h-5" />
-                                ¡Copiado!
+                                {t('qrCode.copied')}
                             </>
                         ) : (
                             <>
                                 <Copy className="w-5 h-5" />
-                                Copiar URL
+                                {t('qrCode.copy_url')}
                             </>
                         )}
                     </button>
@@ -109,7 +111,7 @@ export default function QRCodeModal({ url, eventName, eventToken, onClose }: QRC
                         className="flex-1 btn-neon btn-neon-pink flex items-center justify-center gap-2"
                     >
                         <Download className="w-5 h-5" />
-                        Descargar
+                        {t('qrCode.download')}
                     </button>
                 </div>
             </div>

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ValidatePinPage() {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
 
     const token = searchParams.get('token');
@@ -17,8 +19,8 @@ export default function ValidatePinPage() {
             <div className="min-h-screen flex flex-col items-center justify-center p-8">
                 <div className="glass-card p-8 max-w-md w-full text-center fade-in">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-                    <h1 className="text-2xl font-orbitron font-bold mb-4 text-red-400">Error</h1>
-                    <p className="text-gray-300 mb-6">No se proporcionó token de validación. Usa el enlace que enviamos a tu correo.</p>
+                    <h1 className="text-2xl font-orbitron font-bold mb-4 text-red-400">{t('validatePin.error_title')}</h1>
+                    <p className="text-gray-300 mb-6">{t('validatePin.error_no_token')}</p>
                 </div>
             </div>
         );
@@ -28,7 +30,7 @@ export default function ValidatePinPage() {
         e.preventDefault();
 
         if (!pin.trim() || pin.length < 6) {
-            setError('El PIN debe tener al menos 6 dígitos');
+            setError(t('validatePin.error_length'));
             return;
         }
 
@@ -47,10 +49,10 @@ export default function ValidatePinPage() {
             if (data.success) {
                 setSuccess(true);
             } else {
-                setError(data.error || 'PIN incorrecto o expirado.');
+                setError(data.error || t('validatePin.error_incorrect'));
             }
         } catch (err) {
-            setError('Error de conexión con el servidor.');
+            setError(t('validatePin.error_connection'));
         } finally {
             setLoading(false);
         }
@@ -73,11 +75,11 @@ export default function ValidatePinPage() {
                         )}
                     </div>
                     <h2 className="text-2xl font-orbitron font-bold mb-2 text-white">
-                        Verificar PIN
+                        {t('validatePin.title')}
                     </h2>
                     {!success && (
                         <p className="text-gray-400">
-                            Ingresa el código que enviamos a tu móvil por SMS.
+                            {t('validatePin.instructions')}
                         </p>
                     )}
                 </div>
@@ -85,10 +87,10 @@ export default function ValidatePinPage() {
                 {success ? (
                     <div className="text-center space-y-6">
                         <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-green-400">
-                            ¡Cuenta verificada y activada con éxito!
+                            {t('validatePin.success_message')}
                         </div>
                         <p className="text-gray-300">
-                            Te hemos enviado un correo electrónico con tu acceso a la aplicación.
+                            {t('validatePin.email_sent_message')}
                         </p>
                     </div>
                 ) : (
@@ -101,7 +103,7 @@ export default function ValidatePinPage() {
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-2 text-center">
-                                Código PIN
+                                {t('pinVerification.pin_label')}
                             </label>
                             <input
                                 type="text"
@@ -122,12 +124,12 @@ export default function ValidatePinPage() {
                             {loading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Verificando...
+                                    {t('pinVerification.verifying')}
                                 </>
                             ) : (
                                 <>
                                     <Lock className="w-5 h-5" />
-                                    Validar PIN
+                                    {t('validatePin.validate_button')}
                                 </>
                             )}
                         </button>

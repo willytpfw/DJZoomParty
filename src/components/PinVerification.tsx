@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Send, Loader2, Smartphone, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PinVerificationProps {
     userName: string;
@@ -8,6 +9,7 @@ interface PinVerificationProps {
 }
 
 export default function PinVerification({ userName, keyCompany, onVerified }: PinVerificationProps) {
+    const { t } = useTranslation();
     const [step, setStep] = useState<'send' | 'verify'>('send');
     const [pin, setPin] = useState('');
     const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                 setError(data.error);
             }
         } catch (err) {
-            setError('Error al enviar el PIN');
+            setError(t('pinVerification.error_send'));
         } finally {
             setLoading(false);
         }
@@ -46,7 +48,7 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
 
     const handleVerifyPin = async () => {
         if (!pin.trim() || pin.length < 6) {
-            setError('El PIN debe tener al menos 6 dígitos');
+            setError(t('pinVerification.error_length'));
             return;
         }
 
@@ -68,7 +70,7 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                 setError(data.error);
             }
         } catch (err) {
-            setError('Error al verificar el PIN');
+            setError(t('pinVerification.error_verify'));
         } finally {
             setLoading(false);
         }
@@ -85,19 +87,19 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                     )}
                 </div>
                 <h2 className="text-2xl font-orbitron font-bold mb-2">
-                    Verificación de Acceso
+                    {t('pinVerification.title')}
                 </h2>
                 <p className="text-gray-400">
                     {step === 'send'
-                        ? 'Te enviaremos un código PIN a tu móvil'
-                        : 'Ingresa el código PIN que recibiste'
+                        ? t('pinVerification.send_subtitle')
+                        : t('pinVerification.verify_subtitle')
                     }
                 </p>
             </div>
 
             {/* User Info */}
             <div className="bg-white/5 rounded-lg p-4 mb-6">
-                <p className="text-sm text-gray-400">Usuario</p>
+                <p className="text-sm text-gray-400">{t('pinVerification.user_label')}</p>
                 <p className="font-semibold text-lg">{userName}</p>
             </div>
 
@@ -132,19 +134,19 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                 <div className="space-y-4">
                     {smsSent && (
                         <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-green-400 text-sm">
-                            ✓ Se ha enviado un código PIN a tu móvil
+                            {t('pinVerification.pin_sent_success')}
                         </div>
                     )}
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">
-                            Código PIN
+                            {t('pinVerification.pin_label')}
                         </label>
                         <input
                             type="text"
                             value={pin}
                             onChange={(e) => setPin(e.target.value.replace(/\D/g, '').substring(0, 8))}
-                            placeholder="Ingresa el código de 6 dígitos"
+                            placeholder={t('pinVerification.pin_placeholder')}
                             className="input-neon text-center text-2xl tracking-widest font-mono"
                             maxLength={8}
                         />
@@ -158,12 +160,12 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                         {loading ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Verificando...
+                                {t('pinVerification.verifying')}
                             </>
                         ) : (
                             <>
                                 <Lock className="w-5 h-5" />
-                                Verificar PIN
+                                {t('pinVerification.verify_button')}
                             </>
                         )}
                     </button>
@@ -173,7 +175,7 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
                         disabled={loading}
                         className="w-full text-center text-gray-400 hover:text-white transition text-sm"
                     >
-                        ¿No recibiste el código? Reenviar
+                        {t('pinVerification.resend')}
                     </button>
                 </div>
             )}

@@ -10,8 +10,10 @@ import {
     ArrowLeft,
     CheckCircle,
     XCircle,
-    Search
+    Search,
+    Youtube
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import QRCodeModal from '../components/QRCodeModal';
 import EventForm from '../components/EventForm';
 
@@ -25,6 +27,8 @@ interface Event {
     eventToken: string;
     positionLongitud: number | null;
     positionLatitud: number | null;
+    playList?: boolean;
+    youtubePlaylistId?: string | null;
     company?: {
         name: string;
         keyCompany: string;
@@ -41,6 +45,7 @@ interface Company {
 }
 
 export default function EventListPage() {
+    const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -67,7 +72,7 @@ export default function EventListPage() {
         if (company) {
             fetchEvents();
         } else {
-            setError('No se especificó una compañía');
+            setError(t('eventList.error_nocompany'));
             setLoading(false);
         }
     }, [company]);
@@ -86,7 +91,7 @@ export default function EventListPage() {
 
             setEvents(data.events);
         } catch (err) {
-            setError('Error al cargar eventos');
+            setError(t('eventList.error_loadevents'));
         } finally {
             setLoading(false);
         }
@@ -109,10 +114,10 @@ export default function EventListPage() {
                 setEvents(prev => [data.event, ...prev]);
                 setShowForm(false);
             } else {
-                alert(data.error);
+                alert(data.error || t('eventList.error_createevent'));
             }
         } catch (err) {
-            alert('Error al crear evento');
+            alert(t('eventList.error_createevent'));
         }
     };
 
@@ -134,15 +139,15 @@ export default function EventListPage() {
                 ));
                 setEditingEvent(null);
             } else {
-                alert(data.error);
+                alert(data.error || t('eventList.error_updateevent'));
             }
         } catch (err) {
-            alert('Error al actualizar evento');
+            alert(t('eventList.error_updateevent'));
         }
     };
 
     const handleDeleteEvent = async (eventId: number) => {
-        if (!confirm('¿Está seguro de eliminar este evento?')) return;
+        if (!confirm(t('eventList.confirm_delete'))) return;
 
         try {
             const response = await fetch(`/api/events/${eventId}`, {
@@ -154,10 +159,10 @@ export default function EventListPage() {
             if (data.success) {
                 setEvents(prev => prev.filter(e => e.idEvent !== eventId));
             } else {
-                alert(data.error);
+                alert(data.error || t('eventList.error_deleteevent'));
             }
         } catch (err) {
-            alert('Error al eliminar evento');
+            alert(t('eventList.error_deleteevent'));
         }
     };
 
@@ -169,10 +174,10 @@ export default function EventListPage() {
             if (data.success) {
                 setQrEvent({ url: data.qrData, event });
             } else {
-                alert(data.error);
+                alert(data.error || t('eventList.error_generate_qr'));
             }
         } catch (err) {
-            alert('Error al generar código QR');
+            alert(t('eventList.error_generate_qr'));
         }
     };
 
@@ -234,7 +239,7 @@ export default function EventListPage() {
                         </button>
                         <div>
                             <h1 className="text-3xl md:text-4xl font-orbitron font-bold neon-text-purple">
-                                Eventos
+                                {t('eventList.title')}
                             </h1>
                             {company && (
                                 <p className="text-gray-400 mt-1">{company.name}</p>
@@ -247,7 +252,7 @@ export default function EventListPage() {
                         className="btn-neon flex items-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
-                        <span className="hidden sm:inline">Nuevo Evento</span>
+                        <span className="hidden sm:inline">{t('eventList.new_event')}</span>
                     </button>
                 </div>
 
@@ -265,7 +270,7 @@ export default function EventListPage() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Buscar por nombre o fecha..."
+                            placeholder={t('eventList.search_placeholder')}
                             className="input-neon pl-12"
                         />
                     </div>
@@ -277,13 +282,13 @@ export default function EventListPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-white/10 bg-white/5">
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Estado</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Nombre</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Fecha del Evento</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Fecha Creación</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Ubicación</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Token</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">Acciones</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_status')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_name')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_date')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_creation')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_location')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('eventList.table_token')}</th>
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">{t('eventList.table_actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -302,12 +307,12 @@ export default function EventListPage() {
                                                 {event.active && isEventActive(event.eventDate) ? (
                                                     <>
                                                         <CheckCircle className="w-3 h-3" />
-                                                        Activo
+                                                        {t('eventList.status_active')}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <XCircle className="w-3 h-3" />
-                                                        Expirado
+                                                        {t('eventList.status_expired')}
                                                     </>
                                                 )}
                                             </div>
@@ -361,13 +366,25 @@ export default function EventListPage() {
                                         {/* Actions */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-2">
+                                                {event.playList && event.youtubePlaylistId && (
+                                                    <a
+                                                        href={`https://www.youtube.com/playlist?list=${event.youtubePlaylistId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition"
+                                                        title="Ver YouTube Playlist"
+                                                    >
+                                                        <Youtube className="w-4 h-4" />
+                                                    </a>
+                                                )}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleShowQR(event);
                                                     }}
                                                     className="p-2 rounded-lg bg-disco-cyan/20 hover:bg-disco-cyan/30 text-disco-cyan transition"
-                                                    title="Código QR"
+                                                    title={t('eventList.action_qr')}
                                                 >
                                                     <QrCode className="w-4 h-4" />
                                                 </button>
@@ -377,7 +394,7 @@ export default function EventListPage() {
                                                         setEditingEvent(event);
                                                     }}
                                                     className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
-                                                    title="Editar"
+                                                    title={t('eventList.action_edit')}
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
@@ -387,7 +404,7 @@ export default function EventListPage() {
                                                         handleDeleteEvent(event.idEvent);
                                                     }}
                                                     className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition"
-                                                    title="Eliminar"
+                                                    title={t('eventList.action_delete')}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -403,10 +420,10 @@ export default function EventListPage() {
                         <div className="text-center py-16">
                             <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                             <p className="text-xl text-gray-400">
-                                {searchQuery ? 'No se encontraron eventos' : 'No hay eventos'}
+                                {searchQuery ? t('eventList.empty_search') : t('eventList.empty_list')}
                             </p>
                             <p className="text-gray-500 mt-2">
-                                {searchQuery ? 'Intenta con otro término de búsqueda' : 'Crea tu primer evento para comenzar'}
+                                {searchQuery ? t('eventList.empty_search_desc') : t('eventList.empty_list_desc')}
                             </p>
                         </div>
                     )}

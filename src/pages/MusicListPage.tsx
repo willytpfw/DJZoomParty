@@ -13,6 +13,7 @@ import {
     Trash2,
     Plus
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 
 interface EventMusic {
@@ -49,6 +50,7 @@ interface YouTubeVideo {
 }
 
 export default function MusicListPage() {
+    const { t } = useTranslation();
     const { eventToken } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -93,7 +95,7 @@ export default function MusicListPage() {
         if (eventToken) {
             fetchMusicByToken();
         } else {
-            setError('No se especificó un evento');
+            setError(t('musicList.error_noevent'));
             setLoading(false);
         }
     }, [eventToken]);
@@ -166,7 +168,7 @@ export default function MusicListPage() {
             setEvent(data.event);
             setIsAdmin(data.isAdmin || false);
         } catch (err) {
-            setError('Error al cargar la música');
+            setError(t('musicList.error_loadmusic'));
         } finally {
             setLoading(false);
         }
@@ -269,10 +271,10 @@ export default function MusicListPage() {
                 setSearchResults([]);
                 setSearchQuery('');
             } else {
-                alert(data.error);
+                alert(data.error || t('musicList.error_addsong'));
             }
         } catch (err) {
-            alert('Error al agregar canción');
+            alert(t('musicList.error_addsong'));
         }
     };
 
@@ -306,7 +308,7 @@ export default function MusicListPage() {
                 }
             }
         } catch (err) {
-            console.error('Error al dar like');
+            console.error(t('musicList.error_like'));
         } finally {
             setLikingSongs(prev => {
                 const newSet = new Set(prev);
@@ -317,14 +319,14 @@ export default function MusicListPage() {
     };
 
     const handleDelete = async (musicId: number) => {
-        if (!confirm('¿Estás seguro de que quieres eliminar esta canción?')) {
+        if (!confirm(t('musicList.confirm_delete'))) {
             return;
         }
 
         try {
             const token = getToken();
             if (!token) {
-                alert('Debes iniciar sesión para eliminar canciones');
+                alert(t('musicList.error_auth_delete'));
                 return;
             }
 
@@ -341,10 +343,10 @@ export default function MusicListPage() {
                 // Refresh the entire list from server
                 await fetchMusicByToken();
             } else {
-                alert(data.error || 'Error al eliminar la canción');
+                alert(data.error || t('musicList.error_deletesong'));
             }
         } catch (err) {
-            alert('Error al eliminar la canción');
+            alert(t('musicList.error_deletesong'));
         }
     };
 
@@ -371,7 +373,7 @@ export default function MusicListPage() {
             <div className="min-h-screen flex items-center justify-center p-8">
                 <div className="glass-card p-8 text-center max-w-md">
                     <Music className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-red-400 mb-2">Error</h2>
+                    <h2 className="text-2xl font-bold text-red-400 mb-2">{t('validatePin.error_title')}</h2>
                     <p className="text-gray-400">{error}</p>
                 </div>
             </div>
@@ -394,7 +396,7 @@ export default function MusicListPage() {
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
                             <h1 className="text-3xl md:text-4xl font-orbitron font-bold neon-text-pink">
-                                Lista de Música
+                                {t('musicList.title')}
                             </h1>
 
                             {event?.company && (
@@ -455,7 +457,7 @@ export default function MusicListPage() {
                 <div className="glass-card p-6 mb-8 fade-in">
                     <div className="flex items-center gap-3 mb-4">
                         <Youtube className="w-6 h-6 text-red-500" />
-                        <h2 className="text-xl font-semibold">Buscar en YouTube</h2>
+                        <h2 className="text-xl font-semibold">{t('musicList.search_youtube')}</h2>
                     </div>
 
                     <div className="relative flex-1">
@@ -464,7 +466,7 @@ export default function MusicListPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Busca canciones ..."
+                            placeholder={t('musicList.search_placeholder')}
                             className="input-neon pl-4 pr-10"
                         />
                         {searching && (
@@ -492,7 +494,7 @@ export default function MusicListPage() {
                                                 handleAddSong(video);
                                             }}
                                             className="p-2 sm:p-2.5 rounded-full bg-disco-pink/20 text-disco-pink hover:bg-disco-pink hover:text-white transition-all transform active:scale-95"
-                                            title="Agregar a la lista"
+                                            title={t('musicList.add_to_list')}
                                         >
                                             <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                                         </button>
@@ -513,9 +515,9 @@ export default function MusicListPage() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-orbitron font-bold">
-                            Playlist
+                            {t('musicList.playlist')}
                             <span className="ml-3 text-lg text-gray-400 font-normal">
-                                ({music.length} canciones)
+                                ({music.length} {t('musicList.songs_count')})
                             </span>
                         </h2>
                     </div>
@@ -523,8 +525,8 @@ export default function MusicListPage() {
                     {music.length === 0 ? (
                         <div className="text-center py-16 glass-card">
                             <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                            <p className="text-xl text-gray-400">No hay música en esta lista</p>
-                            <p className="text-gray-500 mt-2">Usa la búsqueda para agregar canciones</p>
+                            <p className="text-xl text-gray-400">{t('musicList.empty_list')}</p>
+                            <p className="text-gray-500 mt-2">{t('musicList.empty_list_desc')}</p>
                         </div>
                     ) : (
                         <div className="grid gap-4">

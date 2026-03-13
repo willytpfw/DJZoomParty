@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X, Calendar, MapPin, Save, Loader2, Type } from 'lucide-react';
+import { X, Calendar, MapPin, Save, Loader2, Type, Youtube } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Event {
     idEvent: number;
@@ -8,6 +9,7 @@ interface Event {
     positionLongitud: number | null;
     positionLatitud: number | null;
     active: boolean;
+    playList?: boolean;
 }
 
 interface EventFormProps {
@@ -17,6 +19,7 @@ interface EventFormProps {
 }
 
 export default function EventForm({ event, onSubmit, onClose }: EventFormProps) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: event?.name || '',
@@ -26,6 +29,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
         positionLatitud: event?.positionLatitud?.toString() || '',
         positionLongitud: event?.positionLongitud?.toString() || '',
         active: event?.active ?? true,
+        playList: event?.playList ?? false,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -33,31 +37,31 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
         const newErrors: Record<string, string> = {};
 
         if (!formData.name.trim()) {
-            newErrors.name = 'El nombre del evento es requerido';
+            newErrors.name = t('eventForm.error_name_required');
         } else if (formData.name.length > 50) {
-            newErrors.name = 'El nombre no puede exceder 50 caracteres';
+            newErrors.name = t('eventForm.error_name_length');
         }
 
         if (!formData.eventDate) {
-            newErrors.eventDate = 'La fecha del evento es requerida';
+            newErrors.eventDate = t('eventForm.error_date_required');
         } else {
             const eventDate = new Date(formData.eventDate);
             if (isNaN(eventDate.getTime())) {
-                newErrors.eventDate = 'Fecha inválida';
+                newErrors.eventDate = t('eventForm.error_date_invalid');
             }
         }
 
         if (formData.positionLatitud) {
             const lat = parseFloat(formData.positionLatitud);
             if (isNaN(lat) || lat < -90 || lat > 90) {
-                newErrors.positionLatitud = 'Latitud debe estar entre -90 y 90';
+                newErrors.positionLatitud = t('eventForm.error_lat_invalid');
             }
         }
 
         if (formData.positionLongitud) {
             const lng = parseFloat(formData.positionLongitud);
             if (isNaN(lng) || lng < -180 || lng > 180) {
-                newErrors.positionLongitud = 'Longitud debe estar entre -180 y 180';
+                newErrors.positionLongitud = t('eventForm.error_lng_invalid');
             }
         }
 
@@ -78,6 +82,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                 positionLatitud: formData.positionLatitud ? parseFloat(formData.positionLatitud) : null,
                 positionLongitud: formData.positionLongitud ? parseFloat(formData.positionLongitud) : null,
                 active: formData.active,
+                playList: formData.playList,
             });
         } finally {
             setLoading(false);
@@ -86,7 +91,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
 
     const handleGetLocation = () => {
         if (!navigator.geolocation) {
-            alert('Geolocalización no soportada');
+            alert(t('eventForm.error_geo_notsupported'));
             return;
         }
 
@@ -99,7 +104,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                 }));
             },
             (error) => {
-                alert('Error al obtener ubicación: ' + error.message);
+                alert(t('eventForm.error_geo_failed') + error.message);
             }
         );
     };
@@ -110,7 +115,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-orbitron font-bold">
-                        {event ? 'Editar Evento' : 'Nuevo Evento'}
+                        {event ? t('eventForm.title_edit') : t('eventForm.title_new')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -125,13 +130,13 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                     <div>
                         <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                             <Type className="w-4 h-4" />
-                            Nombre del Evento *
+                            {t('eventForm.label_name')}
                         </label>
                         <input
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                            placeholder="Ej: Fiesta de Año Nuevo"
+                            placeholder={t('eventForm.placeholder_name')}
                             maxLength={50}
                             className="input-neon"
                         />
@@ -144,7 +149,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                     <div>
                         <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                             <Calendar className="w-4 h-4" />
-                            Fecha y Hora del Evento *
+                            {t('eventForm.label_date')}
                         </label>
                         <input
                             type="datetime-local"
@@ -161,7 +166,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                     <div>
                         <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                             <MapPin className="w-4 h-4" />
-                            Ubicación (opcional)
+                            {t('eventForm.label_location')}
                         </label>
 
                         <div className="grid grid-cols-2 gap-3 mb-2">
@@ -170,7 +175,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                                     type="text"
                                     value={formData.positionLatitud}
                                     onChange={(e) => setFormData(prev => ({ ...prev, positionLatitud: e.target.value }))}
-                                    placeholder="Latitud"
+                                    placeholder={t('eventForm.placeholder_lat')}
                                     className="input-neon"
                                 />
                                 {errors.positionLatitud && (
@@ -182,7 +187,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                                     type="text"
                                     value={formData.positionLongitud}
                                     onChange={(e) => setFormData(prev => ({ ...prev, positionLongitud: e.target.value }))}
-                                    placeholder="Longitud"
+                                    placeholder={t('eventForm.placeholder_lng')}
                                     className="input-neon"
                                 />
                                 {errors.positionLongitud && (
@@ -197,7 +202,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                             className="text-sm text-disco-cyan hover:underline flex items-center gap-1"
                         >
                             <MapPin className="w-3 h-3" />
-                            Usar mi ubicación actual
+                            {t('eventForm.use_current_location')}
                         </button>
                     </div>
 
@@ -212,19 +217,35 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                                 className="w-5 h-5 rounded border-disco-purple bg-transparent"
                             />
                             <label htmlFor="active" className="text-gray-300">
-                                Evento activo
+                                {t('eventForm.active_event')}
                             </label>
                         </div>
                     )}
 
-                    {/* Actions */}
+                    {/* YouTube Playlist */}
+                    {!event && (
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="playList"
+                                checked={formData.playList}
+                                onChange={(e) => setFormData(prev => ({ ...prev, playList: e.target.checked }))}
+                                className="w-5 h-5 rounded border-red-500 bg-transparent text-red-500 focus:ring-red-500"
+                            />
+                            <label htmlFor="playList" className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                                <Youtube className="w-4 h-4 text-red-500" />
+                                {t('eventForm.create_playlist')}
+                            </label>
+                        </div>
+                    )}
+
                     <div className="flex gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
                             className="flex-1 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 transition"
                         >
-                            Cancelar
+                            {t('eventForm.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -234,12 +255,12 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                             {loading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Guardando...
+                                    {t('eventForm.saving')}
                                 </>
                             ) : (
                                 <>
                                     <Save className="w-5 h-5" />
-                                    Guardar
+                                    {t('eventForm.save')}
                                 </>
                             )}
                         </button>
