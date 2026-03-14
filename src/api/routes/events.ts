@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eq, asc, inArray } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { event, userCompany, user } from '../../db/schema';
+import { event, eventMusic, userCompany, user } from '../../db/schema';
 import { createToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
 import { randomBytes } from 'crypto';
@@ -148,7 +148,7 @@ router.put('/:eventId', async (req: Request, res: Response) => {
     }
 });
 
-// Delete event (soft delete by setting active to false)
+// Delete event
 router.delete('/:eventId', async (req: Request, res: Response) => {
     try {
         const eventId = parseInt(req.params.eventId as string);
@@ -157,16 +157,24 @@ router.delete('/:eventId', async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
         }
 
-        const [deletedEvent] = await db.update(event)
-            .set({ active: false })
-            .where(eq(event.idEvent, eventId))
-            .returning();
+        // Validate event exists before deleting
+        const existingEvent = await db.query.event.findFirst({
+            where: eq(event.idEvent, eventId),
+        });
 
-        if (!deletedEvent) {
+        if (!existingEvent) {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
-        res.json({ success: true, message: 'Event deactivated successfully' });
+        // First, delete associated music list
+        await db.delete(eventMusic).where(eq(eventMusic.idEvent, eventId));
+
+        // Then, delete the event
+        const [deletedEvent] = await db.delete(event)
+            .where(eq(event.idEvent, eventId))
+            .returning();
+
+        res.json({ success: true, message: 'Event deleted successfully' });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });
