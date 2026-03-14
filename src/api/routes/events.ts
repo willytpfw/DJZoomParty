@@ -170,9 +170,8 @@ router.delete('/:eventId', async (req: Request, res: Response) => {
         await db.delete(eventMusic).where(eq(eventMusic.idEvent, eventId));
 
         // Then, delete the event
-        const [deletedEvent] = await db.delete(event)
-            .where(eq(event.idEvent, eventId))
-            .returning();
+        await db.delete(event)
+            .where(eq(event.idEvent, eventId));
 
         res.json({ success: true, message: 'Event deleted successfully' });
     } catch (error) {
