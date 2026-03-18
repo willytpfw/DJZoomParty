@@ -11,7 +11,8 @@ import {
     CheckCircle,
     XCircle,
     Search,
-    Youtube
+    Youtube,
+    Settings
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import QRCodeModal from '../components/QRCodeModal';
@@ -59,6 +60,7 @@ export default function EventListPage() {
 
     const company: Company | undefined = location.state?.company;
     const token: string | undefined = location.state?.token;
+    const administrator: boolean | undefined = location.state?.administrator;
 
     // Save token to localStorage if it exists in location state
     useEffect(() => {
@@ -247,13 +249,22 @@ export default function EventListPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="btn-neon flex items-center gap-2"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span className="hidden sm:inline">{t('eventList.new_event')}</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => navigate('/company', { state: { company, token, administrator } })}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-gray-400 hover:text-white"
+                            title={t('eventList.company_settings')}
+                        >
+                            <Settings className="w-6 h-6" />
+                        </button>
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="btn-neon flex items-center gap-2"
+                        >
+                            <Plus className="w-5 h-5" />
+                            <span className="hidden sm:inline">{t('eventList.new_event')}</span>
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
@@ -271,7 +282,7 @@ export default function EventListPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={t('eventList.search_placeholder')}
-                            className="input-neon pl-12"
+                            className="input-neon-icon pl-12"
                         />
                     </div>
                 </div>

@@ -1,4 +1,29 @@
 {
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Volver"
+  },
+  "company": {
+    "title": "Configuración de la Compañía",
+    "admin_mode": "Modo Administrador",
+    "save_success": "Configuración guardada con éxito",
+    "section_general": "Información General",
+    "section_branding": "Identidad Visual",
+    "section_social": "Web y Redes Sociales",
+    "field_name": "Nombre de la Compañía",
+    "field_key": "Clave de Compañía",
+    "field_url": "URL Base",
+    "field_active": "Compañía Activa",
+    "field_logo_url": "URL del Logo",
+    "field_web": "Página Web",
+    "field_instagram": "Instagram URL",
+    "field_facebook": "Facebook URL",
+    "error_load": "Error al cargar los datos de la compañía",
+    "error_save": "Error al guardar la configuración",
+    "error_no_company_context": "No se encontró contexto de compañía",
+    "error_title": "Error de Configuración"
+  },
   "main": {
     "validating_access": "Validando acceso...",
     "access_error": "Error de Acceso",
@@ -65,7 +90,8 @@
     "empty_search": "No se encontraron eventos",
     "empty_search_desc": "Intenta con otro término de búsqueda",
     "empty_list": "No hay eventos",
-    "empty_list_desc": "Crea tu primer evento para comenzar"
+    "empty_list_desc": "Crea tu primer evento para comenzar",
+    "company_settings": "Configuración de la Compañía"
   },
   "musicList": {
     "error_noevent": "No se especificó un evento",

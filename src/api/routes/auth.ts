@@ -39,6 +39,7 @@ router.post('/validate-token', async (req: Request, res: Response) => {
         let redirectTo = '';
         let valid = false;
 
+
         // If EventToken is present, validate event access
         if (payload.EventToken) {
             const eventData = await db.query.event.findFirst({
@@ -57,6 +58,7 @@ router.post('/validate-token', async (req: Request, res: Response) => {
         }
         // If UserName is present, validate user login
         else if (payload.UserName) {
+            console.log(`  ✓ Pay User: ${payload.UserName}`);
 
             const userData = await db.query.user.findFirst({
                 where: eq(user.userName, payload.UserName),
@@ -96,20 +98,26 @@ router.post('/validate-token', async (req: Request, res: Response) => {
                 redirectTo = 'pin-verification';
                 valid = false;
             }
-        }
 
-        res.json({
-            success: true,
-            valid,
-            redirectTo,
-            company: {
-                idCompany: companyData.idCompany,
-                name: companyData.name,
-                urlImagen: companyData.urlImagen,
-                keyCompany: companyData.keyCompany,
-            },
-            payload,
-        });
+
+            res.json({
+                success: true,
+                valid,
+                redirectTo,
+                company: {
+                    idCompany: companyData.idCompany,
+                    name: companyData.name,
+                    urlImagen: companyData.urlImagen,
+                    keyCompany: companyData.keyCompany,
+                },
+                user: {
+                    idUser: userData.idUser,
+                    userName: userData.userName,
+                    administrator: userData.administrator,
+                },
+                payload,
+            });
+        }
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });

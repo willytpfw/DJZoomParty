@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 interface PinVerificationProps {
     userName: string;
     keyCompany: string;
-    onVerified: (token: string) => void;
+    onVerified: (token: string, user: any) => void;
 }
 
 export default function PinVerification({ userName, keyCompany, onVerified }: PinVerificationProps) {
@@ -65,7 +65,7 @@ export default function PinVerification({ userName, keyCompany, onVerified }: Pi
             const data = await response.json();
 
             if (data.success) {
-                onVerified(data.token);
+                onVerified(data.token, data.user);
             } else {
                 setError(data.error);
             }
