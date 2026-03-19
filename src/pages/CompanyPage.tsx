@@ -168,7 +168,6 @@ export default function CompanyPage() {
                     {isAdmin && (
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-disco-purple/20 text-disco-purple border border-disco-purple/30 text-sm font-semibold">
                             <Shield className="w-4 h-4" />
-                            {t('company.admin_mode')}
                         </div>
                     )}
                 </div>
