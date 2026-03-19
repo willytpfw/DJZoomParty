@@ -9,8 +9,11 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
+    console.log("DATABASE_URL Not Found");
     throw new Error("❌ DATABASE_URL no encontrada. El sistema fallará con 'ENOTFOUND base' si continuamos.");
 }
+else
+    console.log("DATABASE_URL Found: ", connectionString);
 
 const pool = new Pool({
     connectionString: connectionString,
