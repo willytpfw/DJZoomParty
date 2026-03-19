@@ -11,6 +11,12 @@ interface CompanyData {
     keyCompany: string;
 }
 
+interface User {
+    idUser: number;
+    administrator: boolean;
+    username: string;
+}
+
 interface TokenPayload {
     KeyCompany: string;
     EventToken?: string;
@@ -28,7 +34,7 @@ export default function MainPage() {
     const [company, setCompany] = useState<CompanyData | null>(null);
     const [payload, setPayload] = useState<TokenPayload | null>(null);
     const [showPinVerification, setShowPinVerification] = useState(false);
-
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
         validateToken();
@@ -58,8 +64,11 @@ export default function MainPage() {
                 return;
             }
 
+            //console.log(`  ✓ Datal: ${data.user.administrator.toString()}`);
+
             setCompany(data.company);
             setPayload(data.payload);
+            setUser(data.user);
 
 
             // Handle redirects
@@ -67,14 +76,14 @@ export default function MainPage() {
             const urlToken = searchParams.get('token');
             if (urlToken) {
                 localStorage.setItem('authToken', urlToken);
-                console.log('✅ Token saved to localStorage');
+                // console.log('✅ Token saved to localStorage');
             }
 
             if (data.valid) {
                 if (data.redirectTo === 'music' && data.payload.EventToken) {
                     navigate(`/music/${data.payload.EventToken}`);
                 } else if (data.redirectTo === 'events') {
-                    navigate('/events', { state: { company: data.company, userName: data.payload.UserName } });
+                    navigate('/events', { state: { company: data.company, userName: data.payload.UserName, administrator: data.user.administrator } });
                 }
             } else if (data.redirectTo === 'pin-verification') {
                 setShowPinVerification(true);
@@ -87,16 +96,20 @@ export default function MainPage() {
         }
     };
 
-    const handlePinVerified = (token: string) => {
+    const handlePinVerified = (token: string, user: User) => {
         // Save token to localStorage for future use
         localStorage.setItem('authToken', token);
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+        }
 
         // Navigate to events after PIN verification
         navigate('/events', {
             state: {
                 company,
                 userName: payload?.UserName,
-                token
+                token,
+                administrator: user.administrator
             }
         });
     };
@@ -168,7 +181,7 @@ export default function MainPage() {
             {!showPinVerification && company && (
                 <div className="flex flex-col sm:flex-row gap-4 fade-in" style={{ animationDelay: '0.4s' }}>
                     <button
-                        onClick={() => navigate('/events', { state: { company } })}
+                        onClick={() => navigate('/events', { state: { company, administrator: user?.administrator } })}
                         className="btn-neon flex items-center gap-3 px-8"
                     >
                         <Calendar className="w-5 h-5" />

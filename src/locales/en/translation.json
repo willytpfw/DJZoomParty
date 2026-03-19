@@ -1,4 +1,29 @@
 {
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "company": {
+    "title": "Company Configuration",
+    "admin_mode": "Administrator Mode",
+    "save_success": "Configuration saved successfully",
+    "section_general": "General Information",
+    "section_branding": "Visual Identity",
+    "section_social": "Web and Social Media",
+    "field_name": "Company Name",
+    "field_key": "Company Key",
+    "field_url": "Base URL",
+    "field_active": "Active Company",
+    "field_logo_url": "Logo URL",
+    "field_web": "Web Page",
+    "field_instagram": "Instagram URL",
+    "field_facebook": "Facebook URL",
+    "error_load": "Error loading company data",
+    "error_save": "Error saving configuration",
+    "error_no_company_context": "No company context found",
+    "error_title": "Configuration Error"
+  },
   "main": {
     "validating_access": "Validating access...",
     "access_error": "Access Error",
@@ -65,7 +90,8 @@
     "empty_search": "No events found",
     "empty_search_desc": "Try another search term",
     "empty_list": "No events",
-    "empty_list_desc": "Create your first event to get started"
+    "empty_list_desc": "Create your first event to get started",
+    "company_settings": "Company Settings"
   },
   "musicList": {
     "error_noevent": "No event specified",

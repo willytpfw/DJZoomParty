@@ -12,7 +12,9 @@ const router = Router();
 // Get events by company ID
 router.get('/company/:companyId', async (req: Request, res: Response) => {
     try {
+        //console.log('Get events by company ID');
         const companyId = parseInt(req.params.companyId as string);
+        const administrator = req.params.administrator as string;
 
         if (isNaN(companyId)) {
             return res.status(400).json({ success: false, error: 'Invalid company ID' });
@@ -23,7 +25,7 @@ router.get('/company/:companyId', async (req: Request, res: Response) => {
             orderBy: [asc(event.eventDate)],
         });
 
-        res.json({ success: true, events });
+        res.json({ success: true, events, administrator });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });
@@ -77,10 +79,10 @@ router.post('/', async (req: Request, res: Response) => {
             try {
                 // If PlayList is true, try to create the playlist
                 const createdPlaylistId = await createYouTubePlaylist(
-                    name.substring(0, 50), 
+                    name.substring(0, 50),
                     `Playlist for event ${name} created by AppEvents`
                 );
-                
+
                 if (createdPlaylistId) {
                     youtubePlaylistId = createdPlaylistId;
                 } else {
@@ -88,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
                 }
             } catch (error: any) {
                 console.error('Error attempting to create YouTube playlist during event creation', error);
-                
+
                 return res.status(400).json({
                     success: false,
                     error: `No se pudo crear la PlayList en YouTube: ${error.message}. (Si acabas de habilitar la API, espera unos minutos y vuelve a intentarlo).`
@@ -226,6 +228,7 @@ router.get('/:eventId/qr-data', async (req: Request, res: Response) => {
 // Get events for a user (via UserCompany)
 router.get('/user/:userName', async (req: Request, res: Response) => {
     try {
+        //console.log('Get events for user');
         const { userName } = req.params;
         // Fix Type  'string | SQLWrapper'
 
@@ -255,7 +258,7 @@ router.get('/user/:userName', async (req: Request, res: Response) => {
             with: { company: true },
         });
 
-        res.json({ success: true, events });
+        res.json({ success: true, events, administrator: userData.administrator });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });
