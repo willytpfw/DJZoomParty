@@ -33,6 +33,7 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
 
         const eventData = await db.query.event.findFirst({
             where: eq(event.idEvent, eventId),
+            with: { company: true },
         });
 
         if (!eventData) {
@@ -41,10 +42,12 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
 
         // Tiered Access Control:
         // Guests are blocked if event is NOT active or NOT in the 12h window.
+        // Or if the COMPANY is NOT active.
         // Admins with UserName and PIN (isAdmin = true) are allowed always.
-        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12)) {
+        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12) || !eventData.company?.active) {
             if (!isAdmin) {
-                return res.status(403).json({ success: false, error: 'El evento no está activo' });
+                const errorMsg = !eventData.company?.active ? 'La compañía está inactiva' : 'El evento no está activo';
+                return res.status(403).json({ success: false, error: errorMsg });
             }
         }
 
@@ -102,12 +105,14 @@ router.get('/event-token/:eventToken', async (req: Request, res: Response) => {
 
         // Tiered Access Control:
         // Guests are blocked if event is NOT active or NOT in the 12h window.
+        // Or if the COMPANY is NOT active.
         // Admins with UserName and PIN (isAdmin = true) are allowed always.
-        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12)) {
+        if (!eventData.active || isExpired(new Date(eventData.eventDate), 12) || !eventData.company?.active) {
             console.log('DEBUG Music Access - Inactive/Expired check triggered');
             if (!isAdmin) {
                 console.log('DEBUG Music Access - Blocking guest');
-                return res.status(403).json({ success: false, error: 'El evento no está activo' });
+                const errorMsg = !eventData.company?.active ? 'La compañía está inactiva' : 'El evento no está activo';
+                return res.status(403).json({ success: false, error: errorMsg });
             }
             console.log('DEBUG Music Access - Allowing Admin bypass');
         }

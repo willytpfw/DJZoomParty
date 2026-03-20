@@ -48,6 +48,13 @@ router.post('/validate-token', async (req: Request, res: Response) => {
             });
 
             if (eventData && isWithinHours(eventData.eventDate, 12)) {
+                // If the event exists, check if the company is active
+                if (!companyData.active) {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'Company is inactive'
+                    });
+                }
                 redirectTo = 'music';
                 valid = true;
             } else {
@@ -69,6 +76,14 @@ router.post('/validate-token', async (req: Request, res: Response) => {
                 return res.status(404).json({ success: false, error: 'User not found' });
             }
 
+            // If company is inactive, only allow administrators
+            if (!companyData.active && !userData.administrator) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Company is inactive. Access restricted.'
+                });
+            }
+            
             // Check if user is associated with the company
             const userCompanyAssociation = await db.query.userCompany.findFirst({
                 where: and(
@@ -76,11 +91,13 @@ router.post('/validate-token', async (req: Request, res: Response) => {
                     eq(userCompany.idCompany, companyData.idCompany)
                 ),
             });
-
+            
             if (!userCompanyAssociation) {
                 return res.status(403).json({ success: false, error: 'User not associated with this company' });
             }
-
+            
+            // ... (rest of the code remains same)
+            
             // Check if strict PIN login is valid within 24 hours
             const twentyFourHoursAgo = addHours(getCurrentDateUTC6(), -24);
             

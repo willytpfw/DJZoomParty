@@ -98,6 +98,11 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Company not found' });
         }
 
+        // Check if company is active for non-admin
+        if (!companyData.active && !currentUser.administrator) {
+            return res.status(403).json({ success: false, error: 'Acceso denegado: La compañía está inactiva' });
+        }
+
         res.json({ success: true, company: companyData });
     } catch (error) {
         const { message } = handleError(error);
