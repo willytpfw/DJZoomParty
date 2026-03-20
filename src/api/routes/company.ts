@@ -1,9 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gt } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { company, user, userCompany } from '../../db/schema';
+import { company, user, userCompany, userLogin } from '../../db/schema';
 import { verifyToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
+import { sendEmail } from '../../utils/emailHelper';
+import { getCurrentDateUTC6 } from '../../utils/timezone';
+import * as jose from 'jose';
+import { addDays, addMonths } from 'date-fns';
 
 const router = Router();
 
@@ -176,6 +180,92 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
             .returning();
 
         res.json({ success: true, company: updatedCompany });
+    } catch (error) {
+        const { message } = handleError(error);
+        res.status(500).json({ success: false, error: message });
+    }
+});
+
+// POST /api/company/:id/generate-token - Generate access URL for company (Admin only)
+router.post('/:id/generate-token', auth, async (req: Request, res: Response) => {
+    try {
+        const currentUser = (req as any).user;
+        if (!currentUser.administrator) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+
+        const idParam = req.params.id;
+        const companyId = parseInt(typeof idParam === 'string' ? idParam : idParam[0]);
+
+        if (isNaN(companyId)) {
+            return res.status(400).json({ success: false, error: 'Invalid company ID' });
+        }
+
+        const companyData = await db.query.company.findFirst({
+            where: eq(company.idCompany, companyId)
+        });
+
+        if (!companyData) {
+            return res.status(404).json({ success: false, error: 'Company not found' });
+        }
+
+        // Find the first user associated with this company
+        const userCompanyData = await db.query.userCompany.findFirst({
+            where: eq(userCompany.idCompany, companyId),
+            with: { user: true }
+        });
+
+        if (!userCompanyData || !userCompanyData.user) {
+            return res.status(404).json({ success: false, error: 'No user associated with this company' });
+        }
+
+        const targetUser = userCompanyData.user;
+
+        // Generate a 6-digit PIN
+        const chars = '0123456789';
+        let newPin = '';
+        for (let i = 0; i < 6; i++) {
+            newPin += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        // Expire all previous active pins for this user
+        await db.update(userLogin)
+            .set({ date: addDays(getCurrentDateUTC6(), -1) })
+            .where(and(eq(userLogin.idUser, targetUser.idUser), gt(userLogin.date, addDays(getCurrentDateUTC6(), -1))));
+
+        // Insert new user_login record
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+        await db.insert(userLogin).values({
+            idUser: targetUser.idUser,
+            pin: newPin,
+            ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
+            response: '200',
+            date: addMonths(getCurrentDateUTC6(), 1)
+        });
+        console.log('New PIN generated:', newPin);
+        // Create JWT
+        const API_URL = process.env.PRODUCTION === 'true' ? process.env.API_BASE_URL : process.env.URLLOCAL;
+        const SIGN_SECRET = process.env.SignJWS || 'default-secret-key-change-in-production';
+        const finalSecret = new TextEncoder().encode(SIGN_SECRET);
+        const finalToken = await new jose.SignJWT({
+            KeyCompany: companyData.keyCompany,
+            UserName: targetUser.userName,
+            PIN: newPin
+        })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('1y')
+            .sign(finalSecret);
+
+        const AccessText = 'Da clic en la siguiente dirección para acceder a la aplicacion. \n\n';
+        const finalUrl = `${API_URL}?token=${finalToken}`;
+
+        // Send Email
+        if (targetUser.eMail) {
+            await sendEmail(targetUser.eMail, `Acceso a ${process.env.APP_NAME}`, AccessText + finalUrl);
+        }
+
+        res.json({ success: true, url: finalUrl, pin: newPin });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });

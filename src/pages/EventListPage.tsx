@@ -251,7 +251,13 @@ export default function EventListPage() {
 
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => navigate('/company', { state: { company, token, administrator } })}
+                            onClick={() => {
+                                if (administrator) {
+                                    navigate('/companies', { state: { company, token, administrator } });
+                                } else {
+                                    navigate('/company', { state: { company, token, administrator } });
+                                }
+                            }}
                             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-gray-400 hover:text-white"
                             title={t('eventList.company_settings')}
                         >
