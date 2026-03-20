@@ -11,8 +11,7 @@ const router = Router();
 // Get music for an event
 router.get('/event/:eventId', async (req: Request, res: Response) => {
     try {
-        const eventId = parseInt(req.params.eventId as string);
-
+        const eventId = parseInt(req.params.eventId as string);        //console.log("Event ID", eventId);
         if (isNaN(eventId)) {
             return res.status(400).json({ success: false, error: 'Invalid event ID' });
         }
@@ -40,6 +39,9 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
+        console.log("Is active", eventData.active);
+        console.log("Is expired", isExpired(new Date(eventData.eventDate), 12));
+        console.log("Is company active", eventData.company?.active);
         // Tiered Access Control:
         // Guests are blocked if event is NOT active or NOT in the 12h window.
         // Or if the COMPANY is NOT active.
