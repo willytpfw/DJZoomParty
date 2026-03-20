@@ -147,5 +147,16 @@
     "saving": "Saving...",
     "save": "Save",
     "create_playlist": "Create YouTube Playlist"
+  },
+  "companyList": {
+    "title": "Companies",
+    "table_company": "Company",
+    "table_key": "Key",
+    "table_status": "Status",
+    "table_actions": "Actions",
+    "status_active": "Active",
+    "status_inactive": "Inactive",
+    "action_edit": "Edit company",
+    "empty_list": "No companies registered"
   }
 }

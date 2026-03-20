@@ -77,7 +77,7 @@ export default function CompanyListPage() {
                         </button>
                         <div>
                             <h1 className="text-3xl md:text-4xl font-orbitron font-bold neon-text-purple">
-                                Compañias
+                                {t('companyList.title')}
                             </h1>
                         </div>
                     </div>
@@ -94,10 +94,10 @@ export default function CompanyListPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-white/10 bg-white/5">
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Compañia</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Clave</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Estatus</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">Acciones</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('companyList.table_company')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('companyList.table_key')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">{t('companyList.table_status')}</th>
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">{t('companyList.table_actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,7 +120,7 @@ export default function CompanyListPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className={`flex items-center gap-2 px-2 py-1 rounded-full text-xs w-fit ${company.active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                {company.active ? 'Activa' : 'Inactiva'}
+                                                {company.active ? t('companyList.status_active') : t('companyList.status_inactive')}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
@@ -129,7 +129,7 @@ export default function CompanyListPage() {
                                                     <button
                                                         onClick={() => handleEditCompany(company)}
                                                         className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-gray-400 hover:text-white"
-                                                        title="Editar compañia"
+                                                        title={t('companyList.action_edit')}
                                                     >
                                                         <Settings className="w-4 h-4" />
                                                     </button>
@@ -144,7 +144,7 @@ export default function CompanyListPage() {
                         {companies.length === 0 && !loading && (
                             <div className="text-center py-16">
                                 <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                                <p className="text-xl text-gray-400">No hay compañias registradas</p>
+                                <p className="text-xl text-gray-400">{t('companyList.empty_list')}</p>
                             </div>
                         )}
                     </div>
