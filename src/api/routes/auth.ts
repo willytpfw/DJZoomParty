@@ -48,8 +48,27 @@ router.post('/validate-token', async (req: Request, res: Response) => {
             });
 
             if (eventData && isWithinHours(eventData.eventDate, 12)) {
-                redirectTo = 'music';
-                valid = true;
+                // If the event exists, check if the company is active
+                //console.log("Is active ", companyData.active);
+                if (!companyData.active) {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'Company is inactive'
+                    });
+                }
+                
+                return res.json({
+                    success: true,
+                    valid: true,
+                    redirectTo: 'music',
+                    payload,
+                    company: {
+                        idCompany: companyData.idCompany,
+                        name: companyData.name,
+                        urlImagen: companyData.urlImagen,
+                        keyCompany: companyData.keyCompany,
+                    }
+                });
             } else {
                 return res.status(403).json({
                     success: false,
@@ -69,6 +88,14 @@ router.post('/validate-token', async (req: Request, res: Response) => {
                 return res.status(404).json({ success: false, error: 'User not found' });
             }
 
+            // If company is inactive, only allow administrators
+            if (!companyData.active && !userData.administrator) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Company is inactive. Access restricted.'
+                });
+            }
+
             // Check if user is associated with the company
             const userCompanyAssociation = await db.query.userCompany.findFirst({
                 where: and(
@@ -81,9 +108,11 @@ router.post('/validate-token', async (req: Request, res: Response) => {
                 return res.status(403).json({ success: false, error: 'User not associated with this company' });
             }
 
+            // ... (rest of the code remains same)
+
             // Check if strict PIN login is valid within 24 hours
             const twentyFourHoursAgo = addHours(getCurrentDateUTC6(), -24);
-            
+
             let validLoginConditions: any[] = [
                 eq(userLogin.idUser, userData.idUser),
                 gt(userLogin.date, twentyFourHoursAgo),
@@ -290,7 +319,7 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
             const accessUrl = `${API_URL}?token=${token}`;
             const subject = `Acceso a ${process.env.APP_NAME || 'AppEvents'}`;
             const messageText = `Hola ${userData.userName},\n\nHas ingresado exitosamente a la aplicación.\n\nPIN de acceso actual: ${pin}\n\nPara futuros accesos directos desde otros dispositivos, da clic en la siguiente dirección para acceder:\n\n${accessUrl}`;
-            
+
             sendEmail(userData.eMail, subject, messageText).catch(err => {
                 console.error('Error sending login email:', err);
             });

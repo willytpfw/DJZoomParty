@@ -93,6 +93,7 @@ export default function MusicListPage() {
 
     useEffect(() => {
         if (eventToken) {
+            console.log("Event token", eventToken);
             fetchMusicByToken();
         } else {
             setError(t('musicList.error_noevent'));
@@ -102,11 +103,11 @@ export default function MusicListPage() {
 
     // Real-time sync: auto-refresh optimized for mobile
     useEffect(() => {
-        if (!eventToken) return;
+        if (!eventToken || error) return;
 
         // Refresh when page becomes visible (handles mobile wake-up)
         const handleVisibilityChange = () => {
-            if (!document.hidden) {
+            if (!document.hidden && !error) {
                 console.log('📱 Page visible - refreshing');
                 fetchMusicByToken();
             }
@@ -117,7 +118,7 @@ export default function MusicListPage() {
 
         // Regular polling interval
         const refreshInterval = setInterval(() => {
-            if (!document.hidden) {
+            if (!document.hidden && !error) {
                 fetchMusicByToken();
             }
         }, 5000); // 5 seconds
@@ -126,7 +127,7 @@ export default function MusicListPage() {
             clearInterval(refreshInterval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [eventToken]);
+    }, [eventToken, error]);
 
     const fetchMusicByToken = async () => {
         try {

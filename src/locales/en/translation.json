@@ -22,7 +22,8 @@
     "error_load": "Error loading company data",
     "error_save": "Error saving configuration",
     "error_no_company_context": "No company context found",
-    "error_title": "Configuration Error"
+    "error_title": "Configuration Error",
+    "generate_access": "Generate Access"
   },
   "main": {
     "validating_access": "Validating access...",
@@ -146,5 +147,16 @@
     "saving": "Saving...",
     "save": "Save",
     "create_playlist": "Create YouTube Playlist"
+  },
+  "companyList": {
+    "title": "Companies",
+    "table_company": "Company",
+    "table_key": "Key",
+    "table_status": "Status",
+    "table_actions": "Actions",
+    "status_active": "Active",
+    "status_inactive": "Inactive",
+    "action_edit": "Edit company",
+    "empty_list": "No companies registered"
   }
 }

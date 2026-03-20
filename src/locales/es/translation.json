@@ -22,7 +22,8 @@
     "error_load": "Error al cargar los datos de la compañía",
     "error_save": "Error al guardar la configuración",
     "error_no_company_context": "No se encontró contexto de compañía",
-    "error_title": "Error de Configuración"
+    "error_title": "Error de Configuración",
+    "generate_access": "Generar Acceso"
   },
   "main": {
     "validating_access": "Validando acceso...",
@@ -146,5 +147,16 @@
     "saving": "Guardando...",
     "save": "Guardar",
     "create_playlist": "Crear Playlist en YouTube"
+  },
+  "companyList": {
+    "title": "Compañías",
+    "table_company": "Compañía",
+    "table_key": "Clave",
+    "table_status": "Estatus",
+    "table_actions": "Acciones",
+    "status_active": "Activa",
+    "status_inactive": "Inactiva",
+    "action_edit": "Editar compañía",
+    "empty_list": "No hay compañías registradas"
   }
 }

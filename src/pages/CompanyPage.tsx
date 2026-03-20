@@ -141,7 +141,7 @@ export default function CompanyPage() {
                 }
             });
             const data = await response.json();
-            
+
             if (data.success) {
                 setGenerationSuccess({ url: data.url });
                 setSuccess(t('company.access_generated') || 'Acceso generado y correo enviado exitosamente');
@@ -229,6 +229,7 @@ export default function CompanyPage() {
                             </h1>
                             <p className="text-gray-400 mt-1">{company?.name}</p>
                         </div>
+
                     </div>
 
                     {isAdmin && (
@@ -252,12 +253,14 @@ export default function CompanyPage() {
                     </div>
                 )}
 
+
+
                 {generationSuccess && (
                     <div className="glass-card p-4 mb-6 border-disco-cyan/30 text-disco-cyan flex items-center gap-3">
                         <KeyRound className="w-5 h-5 shrink-0" />
                         <span className="truncate max-w-full text-sm">{generationSuccess.url}</span>
                         <div className="flex gap-2 ml-auto shrink-0">
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => copyToClipboard(generationSuccess.url)}
                                 className="p-2 bg-white/5 hover:bg-white/10 rounded transition text-gray-300 hover:text-white"
@@ -265,7 +268,7 @@ export default function CompanyPage() {
                             >
                                 <Copy className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => openInNewTab(generationSuccess.url)}
                                 className="p-2 bg-white/5 hover:bg-white/10 rounded transition text-gray-300 hover:text-white"
@@ -276,7 +279,23 @@ export default function CompanyPage() {
                         </div>
                     </div>
                 )}
-
+                {isAdmin && (
+                    <div className="mb-4">
+                        <button
+                            type="button"
+                            onClick={handleGenerateAccess}
+                            disabled={generating || saving}
+                            className="px-6 py-2 rounded-lg border border-disco-cyan/30 text-disco-cyan hover:bg-disco-cyan/10 transition flex items-center gap-2 mr-auto"
+                        >
+                            {generating ? (
+                                <div className="w-5 h-5 border-2 border-disco-cyan/30 border-t-disco-cyan rounded-full animate-spin" />
+                            ) : (
+                                <KeyRound className="w-5 h-5" />
+                            )}
+                            {t('company.generate_access')}
+                        </button>
+                    </div>
+                )}
                 <form onSubmit={handleSave} className="space-y-6">
                     {/* General Section */}
                     <div className="glass-card p-6 border-white/5">
@@ -286,6 +305,7 @@ export default function CompanyPage() {
                                 {t('company.section_general')}
                             </h2>
                         </div>
+
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -417,21 +437,7 @@ export default function CompanyPage() {
                     </div>
 
                     <div className="flex justify-end gap-4 pb-8">
-                        {isAdmin && (
-                            <button
-                                type="button"
-                                onClick={handleGenerateAccess}
-                                disabled={generating || saving}
-                                className="px-6 py-2 rounded-lg border border-disco-cyan/30 text-disco-cyan hover:bg-disco-cyan/10 transition flex items-center gap-2 mr-auto"
-                            >
-                                {generating ? (
-                                    <div className="w-5 h-5 border-2 border-disco-cyan/30 border-t-disco-cyan rounded-full animate-spin" />
-                                ) : (
-                                    <KeyRound className="w-5 h-5" />
-                                )}
-                                Generar Acceso
-                            </button>
-                        )}
+
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
