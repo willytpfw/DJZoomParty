@@ -290,7 +290,7 @@ async function handleValidatePin(req: Request, res: Response) {
         const finalToken = await new jose.SignJWT({
             KeyCompany: keyCompany,
             UserName: userName,
-            PIN: '000000'
+            PIN: pin
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
