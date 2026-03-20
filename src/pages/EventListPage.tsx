@@ -385,7 +385,7 @@ export default function EventListPage() {
                                             <div className="flex items-center justify-center gap-2">
                                                 {event.playList && event.youtubePlaylistId && (
                                                     <a
-                                                        href={`https://www.youtube.com/playlist?list=${event.youtubePlaylistId}`}
+                                                        href={`https://music.youtube.com/playlist?list=${event.youtubePlaylistId}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         onClick={(e) => e.stopPropagation()}
