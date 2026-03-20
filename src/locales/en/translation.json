@@ -22,7 +22,8 @@
     "error_load": "Error loading company data",
     "error_save": "Error saving configuration",
     "error_no_company_context": "No company context found",
-    "error_title": "Configuration Error"
+    "error_title": "Configuration Error",
+    "generate_access": "Generate Access"
   },
   "main": {
     "validating_access": "Validating access...",

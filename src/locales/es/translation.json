@@ -22,7 +22,8 @@
     "error_load": "Error al cargar los datos de la compañía",
     "error_save": "Error al guardar la configuración",
     "error_no_company_context": "No se encontró contexto de compañía",
-    "error_title": "Error de Configuración"
+    "error_title": "Error de Configuración",
+    "generate_access": "Generar Acceso"
   },
   "main": {
     "validating_access": "Validando acceso...",
