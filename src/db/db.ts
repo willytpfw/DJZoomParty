@@ -13,7 +13,7 @@ if (!connectionString) {
 }
 
 // 1. Extraemos el Host para diagnóstico (opcional pero recomendado)
-console.log("Iniciando pool para el host:", new URL(connectionString).hostname);
+//console.log("Iniciando pool para el host:", new URL(connectionString).hostname);
 
 const pool = new Pool({
     connectionString: connectionString,

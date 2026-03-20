@@ -10,7 +10,10 @@ import {
     Image as ImageIcon,
     Shield,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    KeyRound,
+    Copy,
+    ExternalLink
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +39,8 @@ export default function CompanyPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [generating, setGenerating] = useState(false);
+    const [generationSuccess, setGenerationSuccess] = useState<{ url: string } | null>(null);
 
     // Get user info from localStorage or state
     // In this app, we saved the user into location.state during login or we can check localStorage
@@ -122,6 +127,67 @@ export default function CompanyPage() {
         setCompany({ ...company, [field]: value });
     };
 
+    const handleGenerateAccess = async () => {
+        if (!company) return;
+        setGenerating(true);
+        setGenerationSuccess(null);
+        setError(null);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/company/${company.idCompany}/generate-token`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                setGenerationSuccess({ url: data.url });
+                setSuccess(t('company.access_generated') || 'Acceso generado y correo enviado exitosamente');
+            } else {
+                setError(data.error || 'Error generating access token');
+            }
+        } catch (err) {
+            setError('Error generating access token');
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                alert('Copiado al portapapeles / Copied to clipboard');
+            } else {
+                // Fallback for non-secure contexts (e.g. local IP testing over HTTP)
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "absolute";
+                textArea.style.left = "-999999px";
+                document.body.prepend(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Copiado al portapapeles / Copied to clipboard');
+                } catch (error) {
+                    console.error('Fallback copy error:', error);
+                    alert('Error al copiar al portapapeles');
+                } finally {
+                    textArea.remove();
+                }
+            }
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Error al copiar al portapapeles');
+        }
+    };
+
+    const openInNewTab = (url: string) => {
+        window.open(url, '_blank');
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -183,6 +249,31 @@ export default function CompanyPage() {
                     <div className="glass-card p-4 mb-6 border-red-500/30 text-red-400 flex items-center gap-3">
                         <AlertCircle className="w-5 h-5" />
                         {error}
+                    </div>
+                )}
+
+                {generationSuccess && (
+                    <div className="glass-card p-4 mb-6 border-disco-cyan/30 text-disco-cyan flex items-center gap-3">
+                        <KeyRound className="w-5 h-5 shrink-0" />
+                        <span className="truncate max-w-full text-sm">{generationSuccess.url}</span>
+                        <div className="flex gap-2 ml-auto shrink-0">
+                            <button 
+                                type="button"
+                                onClick={() => copyToClipboard(generationSuccess.url)}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded transition text-gray-300 hover:text-white"
+                                title="Copiar URL"
+                            >
+                                <Copy className="w-4 h-4" />
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => openInNewTab(generationSuccess.url)}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded transition text-gray-300 hover:text-white"
+                                title="Abrir en nueva pestaña"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -326,6 +417,21 @@ export default function CompanyPage() {
                     </div>
 
                     <div className="flex justify-end gap-4 pb-8">
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                onClick={handleGenerateAccess}
+                                disabled={generating || saving}
+                                className="px-6 py-2 rounded-lg border border-disco-cyan/30 text-disco-cyan hover:bg-disco-cyan/10 transition flex items-center gap-2 mr-auto"
+                            >
+                                {generating ? (
+                                    <div className="w-5 h-5 border-2 border-disco-cyan/30 border-t-disco-cyan rounded-full animate-spin" />
+                                ) : (
+                                    <KeyRound className="w-5 h-5" />
+                                )}
+                                Generar Acceso
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
@@ -335,7 +441,7 @@ export default function CompanyPage() {
                         </button>
                         <button
                             type="submit"
-                            disabled={saving}
+                            disabled={saving || generating}
                             className="btn-neon flex items-center gap-2 px-8"
                         >
                             {saving ? (

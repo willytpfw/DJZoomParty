@@ -10,6 +10,7 @@ import { addHours, addMonths } from 'date-fns';
 const router = Router();
 
 import { sendPinToUser } from '../../utils/smsHelper';
+import { sendEmail } from '../../utils/emailHelper';
 
 
 // Validate JWS token
@@ -82,12 +83,19 @@ router.post('/validate-token', async (req: Request, res: Response) => {
 
             // Check if strict PIN login is valid within 24 hours
             const twentyFourHoursAgo = addHours(getCurrentDateUTC6(), -24);
+            
+            let validLoginConditions: any[] = [
+                eq(userLogin.idUser, userData.idUser),
+                gt(userLogin.date, twentyFourHoursAgo),
+                eq(userLogin.response, '200')
+            ];
+
+            if (payload.PIN) {
+                validLoginConditions.push(eq(userLogin.pin, String(payload.PIN)));
+            }
+
             const validLogin = await db.query.userLogin.findFirst({
-                where: and(
-                    eq(userLogin.idUser, userData.idUser),
-                    gt(userLogin.date, twentyFourHoursAgo),
-                    eq(userLogin.response, '200')
-                ),
+                where: and(...validLoginConditions),
             });
 
             if (validLogin) {
@@ -275,6 +283,18 @@ router.post('/verify-pin', async (req: Request, res: Response) => {
             UserName: userName,
             PIN: pin, // Include PIN in token
         });
+
+        // Send email with access link asynchronously
+        if (userData.eMail) {
+            const API_URL = process.env.PRODUCTION === 'true' ? process.env.API_BASE_URL : process.env.URLLOCAL;
+            const accessUrl = `${API_URL}?token=${token}`;
+            const subject = `Acceso a ${process.env.APP_NAME || 'AppEvents'}`;
+            const messageText = `Hola ${userData.userName},\n\nHas ingresado exitosamente a la aplicación.\n\nPIN de acceso actual: ${pin}\n\nPara futuros accesos directos desde otros dispositivos, da clic en la siguiente dirección para acceder:\n\n${accessUrl}`;
+            
+            sendEmail(userData.eMail, subject, messageText).catch(err => {
+                console.error('Error sending login email:', err);
+            });
+        }
 
         res.json({
             success: true,
