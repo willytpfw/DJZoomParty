@@ -1,35 +1,34 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import * as schema from './schema';
 import 'dotenv/config';
+import * as schema from './schema';
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
+// 1. Limpieza agresiva de la URL
+const rawUrl = process.env.DATABASE_URL || "";
+const connectionString = rawUrl.replace(/\s/g, '').trim();
 
-if (!connectionString) {
-    console.error("❌ DATABASE_URL Not Found.");
-    throw new Error("DATABASE_URL is missing.");
+// 2. Validación extra: Si la URL no empieza con postgresql://, algo está mal
+if (!connectionString.startsWith('postgresql://')) {
+    console.error("❌ La URL de la base de datos tiene un formato inválido:", connectionString);
 }
-
-// 1. Extraemos el Host para diagnóstico (opcional pero recomendado)
-//console.log("Iniciando pool para el host:", new URL(connectionString).hostname);
 
 const pool = new Pool({
     connectionString: connectionString,
-    ssl: {
-        rejectUnauthorized: false // Necesario para Supabase si no manejas certificados locales
-    },
-    // 2. CONFIGURACIÓN CRÍTICA PARA DOCKER/CUBEPATH
-    max: 10,                 // No satures el pooler
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000, // Si en 5s no resuelve el DNS, lanza error rápido
+    ssl: { rejectUnauthorized: false },
+    // Importante para el Pooler de Supabase
+    max: 10,
+    connectionTimeoutMillis: 10000,
 });
 
-// 3. Manejador de errores del Pool (Evita que el contenedor muera por errores de red)
-pool.on('error', (err) => {
-    console.error('❌ Error inesperado en el pool de Postgres:', err);
+// 3. Prueba de fuego inmediata al arrancar
+pool.connect((err, _, release) => {
+    if (err) {
+        return console.error('❌ Error fatal conectando a la DB:', err.message);
+    }
+    console.log('✅ Conexión establecida correctamente con el host');
+    release();
 });
 
 export const db = drizzle(pool, { schema });
-export default db;
