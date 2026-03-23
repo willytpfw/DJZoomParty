@@ -21,14 +21,14 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.split(' ')[1];
             const payload = await verifyToken(token);
-            console.log('DEBUG Music Access [/event/:eventId] - Payload:', JSON.stringify(payload));
+            //console.log('DEBUG Music Access [/event/:eventId] - Payload:', JSON.stringify(payload));
             if (payload &&
                 typeof payload.UserName === 'string' && payload.UserName.trim() !== '' &&
                 typeof payload.PIN === 'string' && payload.PIN.trim() !== '') {
                 isAdmin = true;
             }
         }
-        console.log('DEBUG Music Access [/event/:eventId] - Evaluated isAdmin:', isAdmin);
+        //console.log('DEBUG Music Access [/event/:eventId] - Evaluated isAdmin:', isAdmin);
 
         const eventData = await db.query.event.findFirst({
             where: eq(event.idEvent, eventId),
@@ -84,39 +84,39 @@ router.get('/event-token/:eventToken', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
-        console.log('DEBUG Music Access - Event Status:', {
-            id: eventData.idEvent,
-            active: eventData.active,
-            date: eventData.eventDate,
-            now: new Date()
-        });
+        // console.log('DEBUG Music Access - Event Status:', {
+        //     id: eventData.idEvent,
+        //     active: eventData.active,
+        //     date: eventData.eventDate,
+        //     now: new Date()
+        // });
 
         let isAdmin = false;
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.split(' ')[1];
             const payload = await verifyToken(token);
-            console.log('DEBUG Music Access [/event-token/:eventToken] - Payload:', JSON.stringify(payload));
+            //console.log('DEBUG Music Access [/event-token/:eventToken] - Payload:', JSON.stringify(payload));
             if (payload &&
                 typeof payload.UserName === 'string' && payload.UserName.trim() !== '' &&
                 typeof payload.PIN === 'string' && payload.PIN.trim() !== '') {
                 isAdmin = true;
             }
         }
-        console.log('DEBUG Music Access [/event-token/:eventToken] - Evaluated isAdmin:', isAdmin);
+        //   console.log('DEBUG Music Access [/event-token/:eventToken] - Evaluated isAdmin:', isAdmin);
 
         // Tiered Access Control:
         // Guests are blocked if event is NOT active or NOT in the 12h window.
         // Or if the COMPANY is NOT active.
         // Admins with UserName and PIN (isAdmin = true) are allowed always.
         if (!eventData.active || isExpired(new Date(eventData.eventDate), 12) || !eventData.company?.active) {
-            console.log('DEBUG Music Access - Inactive/Expired check triggered');
+            //console.log('DEBUG Music Access - Inactive/Expired check triggered');
             if (!isAdmin) {
-                console.log('DEBUG Music Access - Blocking guest');
+                //console.log('DEBUG Music Access - Blocking guest');
                 const errorMsg = !eventData.company?.active ? 'La compañía está inactiva' : 'El evento no está activo';
                 return res.status(403).json({ success: false, error: errorMsg });
             }
-            console.log('DEBUG Music Access - Allowing Admin bypass');
+            //console.log('DEBUG Music Access - Allowing Admin bypass');
         }
 
         const music = await db.query.eventMusic.findMany({
