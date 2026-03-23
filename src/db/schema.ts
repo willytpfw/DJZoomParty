@@ -23,6 +23,7 @@ export const company = pgTable('company', {
     urlInstagram: varchar('url_instagram', { length: 500 }),
     urlFacebook: varchar('url_facebook', { length: 500 }),
     webPage: varchar('web_page', { length: 500 }),
+    validityDate: timestamp('validity_date', { withTimezone: true }),
 });
 
 // UserCompany junction table

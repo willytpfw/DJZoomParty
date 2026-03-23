@@ -7,7 +7,7 @@ import { handleError } from '../../utils/errorHandler';
 import { sendEmail } from '../../utils/emailHelper';
 import { getCurrentDateUTC6 } from '../../utils/timezone';
 import * as jose from 'jose';
-import { addDays, addMonths } from 'date-fns';
+import { addDays, addMonths, addYears } from 'date-fns';
 
 const router = Router();
 
@@ -252,6 +252,8 @@ router.post('/:id/generate-token', auth, async (req: Request, res: Response) => 
         const API_URL = process.env.PRODUCTION === 'true' ? process.env.API_BASE_URL : process.env.URLLOCAL;
         const SIGN_SECRET = process.env.SignJWS || 'default-secret-key-change-in-production';
         const finalSecret = new TextEncoder().encode(SIGN_SECRET);
+        // Use company's validityDate as JWT expiration; fallback to 1 year if not set
+        const jwtExpiration = companyData.validityDate ?? addYears(getCurrentDateUTC6(), 1);
         const finalToken = await new jose.SignJWT({
             KeyCompany: companyData.keyCompany,
             UserName: targetUser.userName,
@@ -259,7 +261,7 @@ router.post('/:id/generate-token', auth, async (req: Request, res: Response) => 
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('1y')
+            .setExpirationTime(jwtExpiration)
             .sign(finalSecret);
 
         const AccessText = 'Da clic en la siguiente dirección para acceder a la aplicacion. \n\n';

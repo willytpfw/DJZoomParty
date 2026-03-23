@@ -6,7 +6,7 @@ import { handleError } from '../../utils/errorHandler';
 import { sendEmail } from '../../utils/emailHelper';
 import { getCurrentDateUTC6 } from '../../utils/timezone';
 import * as jose from 'jose';
-import { addMonths } from 'date-fns/fp';
+import { addMonths, addYears } from 'date-fns';
 
 const router = Router();
 
@@ -100,12 +100,14 @@ async function handleValidate(req: Request, res: Response) {
             return res.status(500).json({ success: false, error: 'Could not generate unique company key, try again' });
         }
 
-        // Insert Company
+        // Insert Company with 1 year validity
+        const validityDate = addYears(getCurrentDateUTC6(), 1);
         const [newCompany] = await db.insert(company).values({
             name: companyName,
             keyCompany,
             active: true,
-            url: API_URL
+            url: API_URL,
+            validityDate
         }).returning();
 
         // Generate temporary password for the user (12-char random)
@@ -146,7 +148,7 @@ async function handleValidate(req: Request, res: Response) {
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('24h')
+            .setExpirationTime(validityDate)
             .sign(finalSecret);
 
         // Build final URL
@@ -248,12 +250,14 @@ async function handleValidatePin(req: Request, res: Response) {
             return res.status(500).json({ success: false, error: 'Could not generate unique company key, try again' });
         }
 
-        // Insert Company
+        // Insert Company with 1 year validity
+        const validityDate = addYears(getCurrentDateUTC6(), 1);
         const [newCompany] = await db.insert(company).values({
             name: companyName,
             keyCompany,
             active: true,
-            url: API_URL
+            url: API_URL,
+            validityDate
         }).returning();
 
         // Generate temporary password for the user (12-char random)
@@ -282,7 +286,7 @@ async function handleValidatePin(req: Request, res: Response) {
             pin: String(pin),
             ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
             response: '200',
-            date: addMonths(1, Number(getCurrentDateUTC6()))
+            date: addMonths(getCurrentDateUTC6(), 1)
         });
 
         // Create final JWT signed with SignJWS
@@ -294,7 +298,7 @@ async function handleValidatePin(req: Request, res: Response) {
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('1y')
+            .setExpirationTime(validityDate)
             .sign(finalSecret);
 
         const AccessText = 'Da clic en la siguiente dirección para acceder a la aplicacion. \n\n';
