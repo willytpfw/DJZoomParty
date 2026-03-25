@@ -214,6 +214,16 @@ router.post('/:id/generate-token', auth, async (req: Request, res: Response) => 
             return res.status(404).json({ success: false, error: 'Company not found' });
         }
 
+        // Check if company license has expired
+        if (companyData.validityDate && companyData.validityDate < getCurrentDateUTC6()) {
+            return res.status(403).json({
+                success: false,
+                code: 'LICENSE_EXPIRED',
+                error: 'Company license has expired',
+                validityDate: companyData.validityDate.toISOString()
+            });
+        }
+
         // Find the first user associated with this company
         const userCompanyData = await db.query.userCompany.findFirst({
             where: eq(userCompany.idCompany, companyId),

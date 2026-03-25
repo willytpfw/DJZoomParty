@@ -27,6 +27,7 @@ interface Company {
     urlInstagram: string | null;
     urlFacebook: string | null;
     webPage: string | null;
+    validityDate: string | null;
 }
 
 export default function CompanyPage() {
@@ -146,7 +147,12 @@ export default function CompanyPage() {
                 setGenerationSuccess({ url: data.url });
                 setSuccess(t('company.access_generated') || 'Acceso generado y correo enviado exitosamente');
             } else {
-                setError(data.error || 'Error generating access token');
+                if (data.code === 'LICENSE_EXPIRED') {
+                    const date = new Date(data.validityDate).toLocaleDateString();
+                    setError(t('company.license_expired', { date }));
+                } else {
+                    setError(data.error || 'Error generating access token');
+                }
             }
         } catch (err) {
             setError('Error generating access token');
@@ -350,6 +356,16 @@ export default function CompanyPage() {
                                     <div className={`w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-disco-purple ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
                                     <span className="ml-3 text-sm font-medium text-gray-400">{t('company.field_active')}</span>
                                 </label>
+                            </div>
+                            <div className="flex items-center gap-4 h-full pt-4">
+                                <label className="block text-sm font-medium text-gray-400 mb-2">{t('company.field_validity_date')}</label>
+                                <input
+                                    type="text"
+                                    value={company?.validityDate || ''}
+                                    onChange={(e) => handleChange('validityDate', e.target.value)}
+                                    disabled={true}
+                                    className={`input-neon ${!isAdmin ? 'opacity-70 cursor-not-allowed bg-black/40' : ''}`}
+                                />
                             </div>
                         </div>
                     </div>

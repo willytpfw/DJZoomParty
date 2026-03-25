@@ -37,6 +37,16 @@ router.post('/validate-token', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Company not found' });
         }
 
+        // Check if company license has expired
+        if (companyData.validityDate && companyData.validityDate < getCurrentDateUTC6()) {
+            return res.status(403).json({
+                success: false,
+                code: 'LICENSE_EXPIRED',
+                error: 'Company license has expired',
+                validityDate: companyData.validityDate.toISOString()
+            });
+        }
+
         let redirectTo = '';
         let valid = false;
 
