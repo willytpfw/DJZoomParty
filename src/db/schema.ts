@@ -16,6 +16,7 @@ export const user = pgTable('user', {
 export const company = pgTable('company', {
     idCompany: serial('id_company').primaryKey(),
     name: varchar('name', { length: 50 }).notNull(),
+    createDate: timestamp('create_date', { withTimezone: true }).defaultNow(),
     active: boolean('active').default(true),
     url: varchar('url', { length: 500 }),
     urlImagen: varchar('url_imagen', { length: 500 }),

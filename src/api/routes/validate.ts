@@ -232,62 +232,97 @@ async function handleValidatePin(req: Request, res: Response) {
             .set({ active: true })
             .where(eq(appRequest.idAppRequest, existingRequest.idAppRequest));
 
-        // Generate unique 8-digit key_company (retry if collision)
-        let keyCompany = '';
-        let attempts = 0;
-        while (attempts < 5) {
-            const candidate = generateKeyCompany();
-            const existing = await db.query.company.findFirst({
-                where: eq(company.keyCompany, candidate),
-            });
-            if (!existing) {
-                keyCompany = candidate;
-                break;
-            }
-            attempts++;
-        }
-        if (!keyCompany) {
-            return res.status(500).json({ success: false, error: 'Could not generate unique company key, try again' });
-        }
-
-        // Insert Company with 1 year validity
         const validityDate = addYears(getCurrentDateUTC6(), 1);
-        const [newCompany] = await db.insert(company).values({
-            name: companyName,
-            keyCompany,
-            active: true,
-            url: API_URL,
-            validityDate
-        }).returning();
+        let keyCompany = '';
 
-        // Generate temporary password for the user (12-char random)
-        const tempPassword = generateRandomStr(12);
-
-        // Insert User (administrator by default)
-        const [newUser] = await db.insert(user).values({
-            userName,
-            eMail,
-            movil: existingRequest.movil ?? undefined,
-            administrator: false,
-            active: true,
-            password: tempPassword.substring(0, 16),
-        }).returning();
-
-        // Link User → Company
-        await db.insert(userCompany).values({
-            idUser: newUser.idUser,
-            idCompany: newCompany.idCompany,
+        // Check for existing user by email with linked company
+        const existingUser = await db.query.user.findFirst({
+            where: eq(user.eMail, eMail),
+            with: {
+                userCompanies: {
+                    with: { company: true }
+                }
+            }
         });
 
-        // Insert UserLogin to mark the user as successfully authenticated
-        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-        await db.insert(userLogin).values({
-            idUser: newUser.idUser,
-            pin: String(pin),
-            ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
-            response: '200',
-            date: addMonths(getCurrentDateUTC6(), 1)
-        });
+        const existingCompanyLink = existingUser?.userCompanies?.[0];
+
+        if (existingUser && existingCompanyLink) {
+            // Company already exists — update name and extend validityDate
+            const existingComp = existingCompanyLink.company;
+            keyCompany = existingComp.keyCompany;
+
+            await db.update(company)
+                .set({ name: existingRequest.companyName, validityDate })
+                .where(eq(company.idCompany, existingComp.idCompany));
+
+            // Insert UserLogin with new PIN
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+            await db.insert(userLogin).values({
+                idUser: existingUser.idUser,
+                pin: String(pin),
+                ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
+                response: '200',
+                date: addMonths(getCurrentDateUTC6(), 1)
+            });
+        } else {
+            // No existing company — create new records (original flow)
+
+            // Generate unique 8-digit key_company (retry if collision)
+            let attempts = 0;
+            while (attempts < 5) {
+                const candidate = generateKeyCompany();
+                const existing = await db.query.company.findFirst({
+                    where: eq(company.keyCompany, candidate),
+                });
+                if (!existing) {
+                    keyCompany = candidate;
+                    break;
+                }
+                attempts++;
+            }
+            if (!keyCompany) {
+                return res.status(500).json({ success: false, error: 'Could not generate unique company key, try again' });
+            }
+
+            // Insert Company with 1 year validity
+            const [newCompany] = await db.insert(company).values({
+                name: companyName,
+                keyCompany,
+                active: true,
+                url: API_URL,
+                validityDate
+            }).returning();
+
+            // Generate temporary password for the user (12-char random)
+            const tempPassword = generateRandomStr(12);
+
+            // Insert User
+            const [newUser] = await db.insert(user).values({
+                userName,
+                eMail,
+                movil: existingRequest.movil ?? undefined,
+                administrator: false,
+                active: true,
+                password: tempPassword.substring(0, 16),
+            }).returning();
+
+            // Link User → Company
+            await db.insert(userCompany).values({
+                idUser: newUser.idUser,
+                idCompany: newCompany.idCompany,
+            });
+
+            // Insert UserLogin
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+            await db.insert(userLogin).values({
+                idUser: newUser.idUser,
+                pin: String(pin),
+                ip: typeof ip === 'string' ? ip.substring(0, 45) : String(ip).substring(0, 45),
+                response: '200',
+                date: addMonths(getCurrentDateUTC6(), 1)
+            });
+        }
 
         // Create final JWT signed with SignJWS
         const finalSecret = new TextEncoder().encode(SIGN_SECRET);
