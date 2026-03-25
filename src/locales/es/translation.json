@@ -23,7 +23,9 @@
     "error_save": "Error al guardar la configuración",
     "error_no_company_context": "No se encontró contexto de compañía",
     "error_title": "Error de Configuración",
-    "generate_access": "Generar Acceso"
+    "generate_access": "Generar Acceso",
+    "license_expired": "La licencia ha caducado el {{date}}. Contacte al administrador para renovar.",
+    "field_validity_date": "Fecha de Licencia"
   },
   "main": {
     "validating_access": "Validando acceso...",
@@ -34,7 +36,8 @@
     "music_list": "Lista de Música",
     "error_no_token": "No se proporcionó token de acceso",
     "error_invalid_token": "Token inválido",
-    "error_connection": "Error de conexión con el servidor"
+    "error_connection": "Error de conexión con el servidor",
+    "license_expired": "La licencia ha caducado el {{date}}. Contacte al administrador para renovar."
   },
   "pinVerification": {
     "title": "Verificación de Acceso",

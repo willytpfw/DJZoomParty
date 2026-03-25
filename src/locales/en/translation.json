@@ -23,7 +23,9 @@
     "error_save": "Error saving configuration",
     "error_no_company_context": "No company context found",
     "error_title": "Configuration Error",
-    "generate_access": "Generate Access"
+    "generate_access": "Generate Access",
+    "license_expired": "The license expired on {{date}}. Contact the administrator to renew.",
+    "field_validity_date": "Validity Date"
   },
   "main": {
     "validating_access": "Validating access...",
@@ -34,7 +36,8 @@
     "music_list": "Music List",
     "error_no_token": "No access token provided",
     "error_invalid_token": "Invalid token",
-    "error_connection": "Server connection error"
+    "error_connection": "Server connection error",
+    "license_expired": "The license expired on {{date}}. Contact the administrator to renew."
   },
   "pinVerification": {
     "title": "Access Verification",

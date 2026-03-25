@@ -59,7 +59,12 @@ export default function MainPage() {
             const data = await response.json();
 
             if (!data.success) {
-                setError(data.error || t('main.error_invalid_token'));
+                if (data.code === 'LICENSE_EXPIRED') {
+                    const date = new Date(data.validityDate).toLocaleDateString();
+                    setError(t('main.license_expired', { date }));
+                } else {
+                    setError(data.error || t('main.error_invalid_token'));
+                }
                 setLoading(false);
                 return;
             }
