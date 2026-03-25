@@ -16,6 +16,7 @@ export const user = pgTable('user', {
 export const company = pgTable('company', {
     idCompany: serial('id_company').primaryKey(),
     name: varchar('name', { length: 50 }).notNull(),
+    createDate: timestamp('create_date', { withTimezone: true }).defaultNow(),
     active: boolean('active').default(true),
     url: varchar('url', { length: 500 }),
     urlImagen: varchar('url_imagen', { length: 500 }),
@@ -23,6 +24,7 @@ export const company = pgTable('company', {
     urlInstagram: varchar('url_instagram', { length: 500 }),
     urlFacebook: varchar('url_facebook', { length: 500 }),
     webPage: varchar('web_page', { length: 500 }),
+    validityDate: timestamp('validity_date', { withTimezone: true }),
 });
 
 // UserCompany junction table
