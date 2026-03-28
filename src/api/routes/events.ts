@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eq, asc, inArray } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { event, eventMusic, userCompany, user } from '../../db/schema';
+import { event, eventMusic, userCompany, user, company } from '../../db/schema';
 import { createToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
 import { randomBytes } from 'crypto';
@@ -9,19 +9,26 @@ import { createYouTubePlaylist } from '../utils/youtubeAuth';
 
 const router = Router();
 
-// Get events by company ID
-router.get('/company/:companyId', async (req: Request, res: Response) => {
+// Get events by company key
+router.get('/company/:keyCompany', async (req: Request, res: Response) => {
     try {
-        //console.log('Get events by company ID');
-        const companyId = parseInt(req.params.companyId as string);
+        const keyCompany = req.params.keyCompany as string;
         const administrator = req.params.administrator as string;
 
-        if (isNaN(companyId)) {
-            return res.status(400).json({ success: false, error: 'Invalid company ID' });
+        if (!keyCompany) {
+            return res.status(400).json({ success: false, error: 'Invalid company key' });
+        }
+
+        const companyData = await db.query.company.findFirst({
+            where: eq(company.keyCompany, keyCompany),
+        });
+
+        if (!companyData) {
+            return res.status(404).json({ success: false, error: 'Company not found' });
         }
 
         const events = await db.query.event.findMany({
-            where: eq(event.idCompany, companyId),
+            where: eq(event.idCompany, companyData.idCompany),
             orderBy: [asc(event.eventDate)],
         });
 

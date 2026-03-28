@@ -83,7 +83,7 @@ export default function EventListPage() {
         if (!company) return;
 
         try {
-            const response = await fetch(`/api/events/company/${company.idCompany}`);
+            const response = await fetch(`/api/events/company/${company.keyCompany}`);
             const data = await response.json();
 
             if (!data.success) {
