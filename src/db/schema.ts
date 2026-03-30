@@ -47,6 +47,7 @@ export const event = pgTable('event', {
     positionLatitud: doublePrecision('position_latitud'),
     playList: boolean('play_list').default(false),
     youtubePlaylistId: varchar('youtube_playlist_id', { length: 255 }),
+    refreshList: boolean('refresh_list').default(false),
 });
 
 // EventMusic table

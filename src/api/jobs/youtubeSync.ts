@@ -6,7 +6,7 @@ import { addVideoToPlaylist, extractVideoId } from '../utils/youtubeAuth';
 export const startYoutubeSyncJob = () => {
     // Get refresh interval from env, default to 5 minutes if not present
     const refreshMinutes = parseInt(process.env.PlayListRefresh || '5');
-    
+
     // Ensure it doesn't poll too fast (e.g., minimum 1 minute)
     const validMinutes = Math.max(1, refreshMinutes);
     const intervalMs = validMinutes * 60 * 1000;
@@ -16,11 +16,12 @@ export const startYoutubeSyncJob = () => {
     setInterval(async () => {
         console.log(`[YouTube Sync] Running sync job at ${new Date().toISOString()}`);
         try {
-            // Find all active events that have PlayList enabled and a valid youtubePlaylistId
+            // Find all active events that have PlayList enabled, refreshList enabled, and a valid youtubePlaylistId
             const activePlaylists = await db.query.event.findMany({
                 where: and(
                     eq(event.active, true),
-                    eq(event.playList, true)
+                    eq(event.playList, true),
+                    eq(event.refreshList, true)
                 ),
             });
 
@@ -28,7 +29,7 @@ export const startYoutubeSyncJob = () => {
                 if (!currentEvent.youtubePlaylistId) {
                     continue; // Skip if no playlist ID
                 }
-
+                console.log(`[YouTube Sync] Event ${currentEvent.name}`);
                 // Find the highest voted, currently visible song
                 const [topSong] = await db.query.eventMusic.findMany({
                     where: and(
@@ -41,17 +42,17 @@ export const startYoutubeSyncJob = () => {
 
                 if (topSong) {
                     console.log(`[YouTube Sync] Event ${currentEvent.idEvent}: Found top song "${topSong.title}" (${topSong.likes} likes)`);
-                    
+
                     const videoId = extractVideoId(topSong.url);
-                    
+
                     if (videoId) {
                         const success = await addVideoToPlaylist(currentEvent.youtubePlaylistId, videoId);
-                        
+
                         // If successfully added to YouTube (or if it's not a valid YouTube URL maybe we just hide it)
                         // For now we'll only mark as not visible if it succeeds or if we decide to force it
                         if (success) {
                             console.log(`[YouTube Sync] Event ${currentEvent.idEvent}: Successfully added "${topSong.title}" to YouTube.`);
-                            
+
                             // Mark song as no longer visible
                             await db.update(eventMusic)
                                 .set({ visible: false })
