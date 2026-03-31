@@ -91,6 +91,9 @@
     "action_qr": "Código QR",
     "action_edit": "Editar",
     "action_delete": "Eliminar",
+    "action_refresh_playlist": "Agregar música a la playlist por votos",
+    "confirm_refresh_playlist": "¿Agregar toda la música del evento a la playlist de YouTube ordenada por votos?",
+    "error_refresh_playlist": "Error al refrescar la playlist",
     "empty_search": "No se encontraron eventos",
     "empty_search_desc": "Intenta con otro término de búsqueda",
     "empty_list": "No hay eventos",
@@ -149,7 +152,8 @@
     "cancel": "Cancelar",
     "saving": "Guardando...",
     "save": "Guardar",
-    "create_playlist": "Crear Playlist en YouTube"
+    "create_playlist": "Crear Playlist en YouTube",
+    "refresh_list": "Agregar automaticamente música a la lista de reproducción según votos"
   },
   "companyList": {
     "title": "Compañías",

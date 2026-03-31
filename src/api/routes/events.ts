@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { eq, asc, inArray } from 'drizzle-orm';
+import { eq, asc, inArray, desc } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { event, eventMusic, userCompany, user, company } from '../../db/schema';
 import { createToken } from '../../utils/jws';
 import { handleError } from '../../utils/errorHandler';
 import { randomBytes } from 'crypto';
-import { createYouTubePlaylist } from '../utils/youtubeAuth';
+import { createYouTubePlaylist, addVideoToPlaylist, extractVideoId } from '../utils/youtubeAuth';
 
 const router = Router();
 
@@ -67,7 +67,7 @@ router.get('/:eventId', async (req: Request, res: Response) => {
 // Create new event
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { idCompany, name, eventDate, positionLongitud, positionLatitud, playList } = req.body;
+        const { idCompany, name, eventDate, positionLongitud, positionLatitud, playList, refreshList } = req.body;
 
         if (!idCompany || !eventDate || !name) {
             return res.status(400).json({
@@ -81,6 +81,7 @@ router.post('/', async (req: Request, res: Response) => {
 
         let youtubePlaylistId: string | null = null;
         const isPlayListEnabled = playList === true || playList === 'true';
+        const isRefreshListEnabled = isPlayListEnabled && (refreshList === true || refreshList === 'true');
 
         if (isPlayListEnabled) {
             try {
@@ -114,6 +115,7 @@ router.post('/', async (req: Request, res: Response) => {
             positionLatitud: positionLatitud ? parseFloat(positionLatitud) : null,
             playList: isPlayListEnabled,
             youtubePlaylistId,
+            refreshList: isRefreshListEnabled,
             active: true,
             creationDate: new Date(),
         }).returning();
@@ -266,6 +268,73 @@ router.get('/user/:userName', async (req: Request, res: Response) => {
         });
 
         res.json({ success: true, events, administrator: userData.administrator });
+    } catch (error) {
+        const { message } = handleError(error);
+        res.status(500).json({ success: false, error: message });
+    }
+});
+
+// Refresh YouTube playlist with all event music ordered by votes
+router.post('/:eventId/refresh-playlist', async (req: Request, res: Response) => {
+    try {
+        const eventId = parseInt(req.params.eventId as string);
+
+        if (isNaN(eventId)) {
+            return res.status(400).json({ success: false, error: 'Invalid event ID' });
+        }
+
+        const eventData = await db.query.event.findFirst({
+            where: eq(event.idEvent, eventId),
+        });
+
+        if (!eventData) {
+            return res.status(404).json({ success: false, error: 'Event not found' });
+        }
+
+        if (!eventData.playList || !eventData.youtubePlaylistId) {
+            return res.status(400).json({ success: false, error: 'Event does not have a YouTube playlist configured' });
+        }
+
+        // Get all visible music ordered by votes descending
+        const musicList = await db.query.eventMusic.findMany({
+            where: eq(eventMusic.idEvent, eventId),
+            orderBy: [desc(eventMusic.likes), asc(eventMusic.number)],
+        });
+
+        const visibleMusic = musicList.filter(m => m.visible);
+
+        if (visibleMusic.length === 0) {
+            return res.json({ success: true, message: 'No music to add to playlist', added: 0 });
+        }
+
+        let added = 0;
+        const errors: string[] = [];
+
+        for (const music of visibleMusic) {
+            const videoId = extractVideoId(music.url);
+            if (!videoId) {
+                errors.push(`Invalid YouTube URL for "${music.title}"`);
+                continue;
+            }
+            try {
+                await addVideoToPlaylist(eventData.youtubePlaylistId, videoId);
+                // Mark as not visible so it no longer appears in the music list
+                await db.update(eventMusic)
+                    .set({ visible: false })
+                    .where(eq(eventMusic.idEventMusic, music.idEventMusic));
+                added++;
+            } catch (err: any) {
+                errors.push(`Error adding "${music.title}": ${err.message}`);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Added ${added} of ${visibleMusic.length} songs to the playlist`,
+            added,
+            total: visibleMusic.length,
+            errors: errors.length > 0 ? errors : undefined,
+        });
     } catch (error) {
         const { message } = handleError(error);
         res.status(500).json({ success: false, error: message });

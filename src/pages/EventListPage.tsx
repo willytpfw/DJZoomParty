@@ -12,7 +12,8 @@ import {
     XCircle,
     Search,
     Youtube,
-    Settings
+    Settings,
+    RefreshCw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import QRCodeModal from '../components/QRCodeModal';
@@ -29,6 +30,7 @@ interface Event {
     positionLongitud: number | null;
     positionLatitud: number | null;
     playList?: boolean;
+    refreshList?: boolean;
     youtubePlaylistId?: string | null;
     company?: {
         name: string;
@@ -57,6 +59,7 @@ export default function EventListPage() {
     const [editingEvent, setEditingEvent] = useState<Event | null>(null);
     const [qrEvent, setQrEvent] = useState<{ url: string; event: Event } | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [refreshingEventId, setRefreshingEventId] = useState<number | null>(null);
 
     const company: Company | undefined = location.state?.company;
     const token: string | undefined = location.state?.token;
@@ -180,6 +183,26 @@ export default function EventListPage() {
             }
         } catch (err) {
             alert(t('eventList.error_generate_qr'));
+        }
+    };
+
+    const handleRefreshPlaylist = async (event: Event) => {
+        if (!confirm(t('eventList.confirm_refresh_playlist'))) return;
+        setRefreshingEventId(event.idEvent);
+        try {
+            const response = await fetch(`/api/events/${event.idEvent}/refresh-playlist`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+            } else {
+                alert(data.error || t('eventList.error_refresh_playlist'));
+            }
+        } catch (err) {
+            alert(t('eventList.error_refresh_playlist'));
+        } finally {
+            setRefreshingEventId(null);
         }
     };
 
@@ -394,6 +417,19 @@ export default function EventListPage() {
                                                     >
                                                         <Youtube className="w-4 h-4" />
                                                     </a>
+                                                )}
+                                                {event.playList && event.youtubePlaylistId && !event.refreshList && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRefreshPlaylist(event);
+                                                        }}
+                                                        disabled={refreshingEventId === event.idEvent}
+                                                        className="p-2 rounded-lg bg-disco-cyan/20 hover:bg-disco-cyan/30 text-disco-cyan transition disabled:opacity-50"
+                                                        title={t('eventList.action_refresh_playlist')}
+                                                    >
+                                                        <RefreshCw className={`w-4 h-4 ${refreshingEventId === event.idEvent ? 'animate-spin' : ''}`} />
+                                                    </button>
                                                 )}
                                                 <button
                                                     onClick={(e) => {

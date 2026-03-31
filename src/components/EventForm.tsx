@@ -10,6 +10,7 @@ interface Event {
     positionLatitud: number | null;
     active: boolean;
     playList?: boolean;
+    refreshList?: boolean;
 }
 
 interface EventFormProps {
@@ -30,6 +31,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
         positionLongitud: event?.positionLongitud?.toString() || '',
         active: event?.active ?? true,
         playList: event?.playList ?? false,
+        refreshList: event?.refreshList ?? false,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -83,6 +85,7 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
                 positionLongitud: formData.positionLongitud ? parseFloat(formData.positionLongitud) : null,
                 active: formData.active,
                 playList: formData.playList,
+                refreshList: formData.refreshList,
             });
         } finally {
             setLoading(false);
@@ -224,18 +227,35 @@ export default function EventForm({ event, onSubmit, onClose }: EventFormProps) 
 
                     {/* YouTube Playlist */}
                     {!event && (
-                        <div className="flex items-center gap-3">
-                            <input
-                                type="checkbox"
-                                id="playList"
-                                checked={formData.playList}
-                                onChange={(e) => setFormData(prev => ({ ...prev, playList: e.target.checked }))}
-                                className="w-5 h-5 rounded border-red-500 bg-transparent text-red-500 focus:ring-red-500"
-                            />
-                            <label htmlFor="playList" className="flex items-center gap-2 text-gray-300 cursor-pointer">
-                                <Youtube className="w-4 h-4 text-red-500" />
-                                {t('eventForm.create_playlist')}
-                            </label>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="playList"
+                                    checked={formData.playList}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, playList: e.target.checked, refreshList: e.target.checked ? prev.refreshList : false }))}
+                                    className="w-5 h-5 rounded border-red-500 bg-transparent text-red-500 focus:ring-red-500"
+                                />
+                                <label htmlFor="playList" className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                                    <Youtube className="w-4 h-4 text-red-500" />
+                                    {t('eventForm.create_playlist')}
+                                </label>
+                            </div>
+                            {formData.playList && (
+                                <div className="flex items-center gap-3 ml-8">
+                                    <input
+                                        type="checkbox"
+                                        id="refreshList"
+                                        checked={formData.refreshList}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, refreshList: e.target.checked }))}
+                                        className="w-5 h-5 rounded border-disco-cyan bg-transparent text-disco-cyan focus:ring-disco-cyan"
+                                    />
+                                    <label htmlFor="refreshList" className="flex items-center gap-2 text-gray-400 cursor-pointer text-sm">
+                                        <Youtube className="w-4 h-4 text-disco-cyan" />
+                                        {t('eventForm.refresh_list')}
+                                    </label>
+                                </div>
+                            )}
                         </div>
                     )}
 

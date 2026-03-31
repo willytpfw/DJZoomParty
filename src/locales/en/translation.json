@@ -91,6 +91,9 @@
     "action_qr": "QR Code",
     "action_edit": "Edit",
     "action_delete": "Delete",
+    "action_refresh_playlist": "Add music to playlist ordered by votes",
+    "confirm_refresh_playlist": "Add all event music to the YouTube playlist ordered by votes?",
+    "error_refresh_playlist": "Error refreshing the playlist",
     "empty_search": "No events found",
     "empty_search_desc": "Try another search term",
     "empty_list": "No events",
@@ -149,7 +152,8 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "save": "Save",
-    "create_playlist": "Create YouTube Playlist"
+    "create_playlist": "Create YouTube Playlist",
+    "refresh_list": "Add automatically music to the playlist ordered by votes"
   },
   "companyList": {
     "title": "Companies",
