@@ -1,7 +1,7 @@
 Estas preocupado por la música que vas a poner en tu evento?
 
 
-Usa AppEvent
+Usa DJZoomParty
 
 Agrega un evento.
 Define hora y lugar.
